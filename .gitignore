@@ -1,0 +1,41 @@
+/target
+drivers/gpu/drm/nouveau/nvkm/subdev/i2c/aux.c
+drivers/gpu/drm/nouveau/nvkm/subdev/i2c/aux.h
+include/soc/arc/aux.h
+
+# Rust specific
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# IDE specific
+.idea/
+.vscode/
+.vs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.env/
+
+# Performance and profiling
+perf.data*
+flamegraph.svg
+dhat-heap.json
+
+# Generated files
+*.qasm
+benchmark_results.html
+benchmark_results.png
+
+# Dependencies
+node_modules/
+
+# System Files
+.DS_Store
+Thumbs.db
