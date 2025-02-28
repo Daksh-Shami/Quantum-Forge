@@ -1,9 +1,9 @@
 use crate::*;
-use std::sync::Arc;
-use std::sync::atomic::Ordering;
-use std::time::Instant;
 use rayon::{prelude::*, ThreadPoolBuilder};
 use std::collections::HashMap;
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
+use std::time::Instant;
 
 // Thread-local storage for circuit instances
 thread_local! {
@@ -26,10 +26,10 @@ pub fn bitvec_to_string(bv: &MeasurementResult) -> String {
 }
 
 pub fn execute_circuit(
-    circuit: &QuantumCircuit, 
-    measurement_order: &[usize], 
+    circuit: &QuantumCircuit,
+    measurement_order: &[usize],
     iterations: usize,
-    verbose: bool
+    verbose: bool,
 ) -> Result<ExecutionResults, String> {
     let start_time = Instant::now();
 
@@ -42,7 +42,7 @@ pub fn execute_circuit(
     // Configure thread pool
     let ideal_thread_num = circuit.qubit_count() * iterations / 100000;
     let num_threads = ideal_thread_num.clamp(1, num_cpus::get());
-    
+
     ThreadPoolBuilder::new()
         .num_threads(num_threads)
         .build_global()
@@ -55,39 +55,42 @@ pub fn execute_circuit(
     // Process in batches
     const BATCH_SIZE: usize = 100000;
     let num_batches = (iterations + BATCH_SIZE - 1) / BATCH_SIZE;
-    
+
     // Process batches in parallel
-    let results: Result<HashMap<MeasurementResult, usize>, String> = (0..num_batches).into_par_iter().try_fold(
-        || HashMap::default(),
-        |mut local_counts, batch| {
-            let current_batch_size = if batch == num_batches - 1 {
-                iterations - (batch * BATCH_SIZE)
-            } else {
-                BATCH_SIZE
-            };
+    let results: Result<HashMap<MeasurementResult, usize>, String> = (0..num_batches)
+        .into_par_iter()
+        .try_fold(
+            || HashMap::default(),
+            |mut local_counts, batch| {
+                let current_batch_size = if batch == num_batches - 1 {
+                    iterations - (batch * BATCH_SIZE)
+                } else {
+                    BATCH_SIZE
+                };
 
-            // Execute measurements in parallel
-            let results: Vec<MeasurementResult> = (0..current_batch_size)
-                .into_par_iter()
-                .map(|_| circuit.measureall(&measurement_order))
-                .collect::<Result<Vec<_>, _>>()?;
+                // Execute measurements in parallel
+                let results: Vec<MeasurementResult> = (0..current_batch_size)
+                    .into_par_iter()
+                    .map(|_| circuit.measureall(&measurement_order))
+                    .collect::<Result<Vec<_>, _>>()?;
 
-            // Count results
-            for result in results {
-                *local_counts.entry(result).or_insert(0) += 1;
-            }
+                // Count results
+                for result in results {
+                    *local_counts.entry(result).or_insert(0) += 1;
+                }
 
-            Ok(local_counts)
-        },
-    ).try_reduce(
-        || HashMap::default(),
-        |mut acc, local_counts| {
-            for (state, count) in local_counts {
-                *acc.entry(state).or_insert(0) += count;
-            }
-            Ok(acc)
-        },
-    );
+                Ok(local_counts)
+            },
+        )
+        .try_reduce(
+            || HashMap::default(),
+            |mut acc, local_counts| {
+                for (state, count) in local_counts {
+                    *acc.entry(state).or_insert(0) += count;
+                }
+                Ok(acc)
+            },
+        );
 
     let counts = results?;
 
@@ -101,10 +104,12 @@ pub fn execute_circuit(
     if verbose {
         println!("\nMeasurement results (out of {} runs):", iterations);
         for (state, count) in &string_counts {
-            println!("{}: {} ({:.2}%)", 
-                    state, 
-                    count, 
-                    (*count as f64 / iterations as f64) * 100.0);
+            println!(
+                "{}: {} ({:.2}%)",
+                state,
+                count,
+                (*count as f64 / iterations as f64) * 100.0
+            );
         }
     }
 
@@ -113,7 +118,10 @@ pub fn execute_circuit(
 
     if verbose {
         println!("Total time: {:.6} seconds", total_time);
-        println!("Peak memory usage: {:.2} MB", peak_memory as f64 / 1_048_576.0);
+        println!(
+            "Peak memory usage: {:.2} MB",
+            peak_memory as f64 / 1_048_576.0
+        );
     }
 
     Ok(ExecutionResults {

@@ -20,9 +20,7 @@ macro_rules! bench_circuit {
         let (circuit, measurement_order) = QuantumCircuit::from_qasm(&qasm).unwrap();
 
         $c.bench_function(&format!("{} qubit circuit", $qubits), |b| {
-            b.iter(|| {
-                circuit.measureall(black_box(&measurement_order))
-            })
+            b.iter(|| circuit.measureall(black_box(&measurement_order)))
         });
     };
 }
@@ -38,8 +36,8 @@ fn generate_complex_circuit(qubits: usize) -> String {
         }
 
         // Apply CNOT gates in a chain
-        for i in 0..qubits-1 {
-            circuit.push_str(&format!("cx q[{}],q[{}];\n", i, i+1));
+        for i in 0..qubits - 1 {
+            circuit.push_str(&format!("cx q[{}],q[{}];\n", i, i + 1));
         }
 
         // Apply Phase gates to even qubits
@@ -48,8 +46,8 @@ fn generate_complex_circuit(qubits: usize) -> String {
         }
 
         // Apply Toffoli gates where possible
-        for i in 0..qubits-2 {
-            circuit.push_str(&format!("ccx q[{}],q[{}],q[{}];\n", i, i+1, i+2));
+        for i in 0..qubits - 2 {
+            circuit.push_str(&format!("ccx q[{}],q[{}],q[{}];\n", i, i + 1, i + 2));
         }
 
         // Apply X gates to odd qubits

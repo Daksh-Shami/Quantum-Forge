@@ -1,3 +1,4 @@
+use crate::simulator::{create_simulator_from_state, SimulatorType};
 use bitvec_simd::BitVec;
 use memory_stats::memory_stats;
 use mimalloc::MiMalloc;
@@ -10,7 +11,6 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use crate::simulator::{SimulatorType, create_simulator_from_state};
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
@@ -238,7 +238,7 @@ impl QuantumCircuit {
         let mut result = String::new();
         result.push_str(&format!("OPENQASM 2.0;\ninclude \"qelib1.inc\";\n\n"));
         result.push_str(&format!("qreg q[{}];\n", self.qubit_count));
-        
+
         for (i, _) in self.classical_registers.iter().enumerate() {
             result.push_str(&format!("creg c{}[{}];\n", i, self.qubit_count));
         }
@@ -252,7 +252,7 @@ impl QuantumCircuit {
 
     pub fn inverse(&self) -> Self {
         let mut inverse_circuit = Self::new(self.qubit_count);
-        
+
         // Add gates in reverse order with their inverse operations
         for gate in self.gates.iter().rev() {
             match gate {
@@ -272,31 +272,28 @@ impl QuantumCircuit {
                 _ => inverse_circuit.add_gate(gate.clone()),
             }
         }
-        
+
         inverse_circuit
     }
 
     pub fn apply_to_state(&self, initial_state: &QuantumState) -> Result<QuantumState, String> {
         let mut simulator = create_simulator_from_state(
-            self.simulator_type, 
-            initial_state.amplitudes.clone(), 
-            initial_state.qubit_count
+            self.simulator_type,
+            initial_state.amplitudes.clone(),
+            initial_state.qubit_count,
         );
-        
+
         for gate in &self.gates {
             simulator.apply_gate(gate)?;
         }
-        
+
         simulator.get_state()
     }
 
     pub fn measureall(&self, measurement_order: &[usize]) -> Result<MeasurementResult, String> {
         let state = self.apply_to_state(&QuantumState::new(self.qubit_count))?;
-        let simulator = create_simulator_from_state(
-            self.simulator_type,
-            state.amplitudes,
-            state.qubit_count
-        );
+        let simulator =
+            create_simulator_from_state(self.simulator_type, state.amplitudes, state.qubit_count);
         simulator.measure(measurement_order)
     }
 
@@ -345,7 +342,9 @@ impl QuantumState {
         }
     }
 
-    pub fn to_simulator<S: QuantumSimulator + From<(Vec<Complex>, usize)>>(&self) -> Result<S, String> {
+    pub fn to_simulator<S: QuantumSimulator + From<(Vec<Complex>, usize)>>(
+        &self,
+    ) -> Result<S, String> {
         Ok(S::from((self.amplitudes.clone(), self.qubit_count)))
     }
 
@@ -507,7 +506,7 @@ macro_rules! parse_register_info {
 
 fn parse_angle(angle_str: &str) -> Result<f64, String> {
     let angle_str = angle_str.trim();
-    
+
     // Handle negative pi cases first
     if angle_str.starts_with("-pi/") {
         return angle_str[4..]
@@ -515,16 +514,14 @@ fn parse_angle(angle_str: &str) -> Result<f64, String> {
             .map(|divisor| -PI / divisor)
             .map_err(|e| format!("Invalid divisor in angle: {}", e));
     }
-    
+
     match angle_str {
         "pi" => Ok(PI),
         "-pi" => Ok(-PI),
-        s if s.starts_with("pi/") => {
-            s[3..]
-                .parse::<f64>()
-                .map(|divisor| PI / divisor)
-                .map_err(|e| format!("Invalid divisor in angle: {}", e))
-        }
+        s if s.starts_with("pi/") => s[3..]
+            .parse::<f64>()
+            .map(|divisor| PI / divisor)
+            .map_err(|e| format!("Invalid divisor in angle: {}", e)),
         s => s
             .parse()
             .map_err(|e| format!("Invalid angle format: {}", e)),

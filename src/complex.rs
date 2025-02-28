@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
-use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::fmt::Debug;
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(Clone, Copy, Debug)]
-pub struct Complex<T = f64> 
-where 
-    T: Copy + Debug
+pub struct Complex<T = f64>
+where
+    T: Copy + Debug,
 {
     pub re: T,
     pub im: T,
@@ -44,9 +44,9 @@ impl<'de> Deserialize<'de> for Complex<f64> {
     }
 }
 
-impl<T> Complex<T> 
-where 
-    T: Copy + Debug
+impl<T> Complex<T>
+where
+    T: Copy + Debug,
 {
     pub fn new(re: T, im: T) -> Self {
         Self { re, im }
@@ -55,7 +55,7 @@ where
 
 impl<T> Complex<T>
 where
-    T: Copy + Debug + Add<Output = T> + Mul<Output = T>
+    T: Copy + Debug + Add<Output = T> + Mul<Output = T>,
 {
     pub fn norm_squared(&self) -> T {
         self.re * self.re + self.im * self.im
@@ -71,7 +71,7 @@ impl Complex<f64> {
 
 impl<T> Mul for Complex<T>
 where
-    T: Copy + Debug + Add<Output = T> + Sub<Output = T> + Mul<Output = T>
+    T: Copy + Debug + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
 {
     type Output = Self;
 
@@ -85,7 +85,7 @@ where
 
 impl<T> Mul<Complex<T>> for &Complex<T>
 where
-    T: Copy + Debug + Add<Output = T> + Sub<Output = T> + Mul<Output = T>
+    T: Copy + Debug + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
 {
     type Output = Complex<T>;
 
@@ -99,7 +99,7 @@ where
 
 impl<T> MulAssign for Complex<T>
 where
-    T: Copy + Debug + Add<Output = T> + Sub<Output = T> + Mul<Output = T>
+    T: Copy + Debug + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
 {
     fn mul_assign(&mut self, rhs: Self) {
         let re = self.re * rhs.re - self.im * rhs.im;
@@ -111,7 +111,7 @@ where
 
 impl<T> Add for Complex<T>
 where
-    T: Copy + Debug + Add<Output = T>
+    T: Copy + Debug + Add<Output = T>,
 {
     type Output = Self;
 
@@ -125,7 +125,7 @@ where
 
 impl<T> AddAssign for Complex<T>
 where
-    T: Copy + Debug + AddAssign
+    T: Copy + Debug + AddAssign,
 {
     fn add_assign(&mut self, rhs: Self) {
         self.re += rhs.re;
@@ -135,7 +135,7 @@ where
 
 impl<T> Sub for Complex<T>
 where
-    T: Copy + Debug + Sub<Output = T>
+    T: Copy + Debug + Sub<Output = T>,
 {
     type Output = Self;
 
@@ -149,7 +149,7 @@ where
 
 impl<T> Neg for Complex<T>
 where
-    T: Copy + Debug + Neg<Output = T>
+    T: Copy + Debug + Neg<Output = T>,
 {
     type Output = Self;
 
@@ -163,7 +163,7 @@ where
 
 impl<T> SubAssign for Complex<T>
 where
-    T: Copy + Debug + SubAssign
+    T: Copy + Debug + SubAssign,
 {
     fn sub_assign(&mut self, rhs: Self) {
         self.re -= rhs.re;
