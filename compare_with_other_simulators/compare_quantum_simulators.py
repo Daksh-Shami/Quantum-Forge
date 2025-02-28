@@ -8,7 +8,7 @@ from termcolor import colored, cprint
 from tabulate import tabulate
 import os
 
-# Path to the QF executable
+# Path to the QF executable (Please change this to the root directory of your Quantum Forge workspace)
 WORKSPACE_DIR = "/home/dakshshami/Desktop/quantum_forge_workspace"
 QF_EXE_PATH = os.path.join(WORKSPACE_DIR, "target/release/quantum_compiler")
 
