@@ -2,6 +2,7 @@ use crate::simulator::{create_simulator_from_state, SimulatorType};
 use bitvec_simd::BitVec;
 use memory_stats::memory_stats;
 use mimalloc::MiMalloc;
+use num_complex::Complex;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -21,8 +22,6 @@ pub mod algorithm_runner;
 pub mod algorithms;
 pub mod circuit_executor;
 // pub mod parser;
-pub mod complex;
-pub use complex::Complex;
 
 pub mod simulator;
 use simulator::QuantumSimulator;
@@ -310,9 +309,9 @@ impl QuantumCircuit {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct QuantumState {
-    pub amplitudes: Vec<Complex>,
+    pub amplitudes: Vec<Complex<f64>>,
     pub qubit_count: usize,
 }
 
@@ -326,7 +325,7 @@ impl QuantumState {
         }
     }
 
-    pub fn from_amplitudes(amplitudes: Vec<Complex>) -> Self {
+    pub fn from_amplitudes(amplitudes: Vec<Complex<f64>>) -> Self {
         let qubit_count = (amplitudes.len() as f64).log2() as usize;
         Self {
             amplitudes,
@@ -334,7 +333,7 @@ impl QuantumState {
         }
     }
 
-    pub fn from_amplitudes_ref(amplitudes: &[Complex]) -> Self {
+    pub fn from_amplitudes_ref(amplitudes: &[Complex<f64>]) -> Self {
         let qubit_count = (amplitudes.len() as f64).log2() as usize;
         Self {
             amplitudes: amplitudes.to_vec(),
@@ -342,7 +341,7 @@ impl QuantumState {
         }
     }
 
-    pub fn to_simulator<S: QuantumSimulator + From<(Vec<Complex>, usize)>>(
+    pub fn to_simulator<S: QuantumSimulator + From<(Vec<Complex<f64>>, usize)>>(
         &self,
     ) -> Result<S, String> {
         Ok(S::from((self.amplitudes.clone(), self.qubit_count)))

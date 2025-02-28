@@ -70,7 +70,8 @@
 // - Optimizing common operations like state vector manipulation
 // - Using appropriate data structures for the target platform
 
-use crate::{Complex, MeasurementResult, QuantumGate, QuantumState};
+use crate::{MeasurementResult, QuantumGate, QuantumState};
+use num_complex::Complex;
 
 #[derive(Clone, Copy, Debug)]
 pub enum SimulatorType {
@@ -107,8 +108,8 @@ pub mod cpu;
 pub use cpu::CPUSimulator;
 
 // Implement From trait for CPUSimulator
-impl From<(Vec<Complex>, usize)> for CPUSimulator {
-    fn from((amplitudes, num_qubits): (Vec<Complex>, usize)) -> Self {
+impl From<(Vec<Complex<f64>>, usize)> for CPUSimulator {
+    fn from((amplitudes, num_qubits): (Vec<Complex<f64>>, usize)) -> Self {
         CPUSimulator::from_state(amplitudes.into_boxed_slice(), num_qubits)
     }
 }
@@ -124,7 +125,7 @@ pub fn create_simulator(sim_type: SimulatorType, num_qubits: usize) -> Box<dyn Q
 // Factory function to create simulators from an existing state
 pub fn create_simulator_from_state(
     sim_type: SimulatorType,
-    amplitudes: Vec<Complex>,
+    amplitudes: Vec<Complex<f64>>,
     num_qubits: usize,
 ) -> Box<dyn QuantumSimulator> {
     match sim_type {

@@ -1,12 +1,13 @@
 use super::QuantumSimulator;
-use crate::{BitVec, Complex, MeasurementResult, QuantumGate, QuantumState};
+use crate::{BitVec, MeasurementResult, QuantumGate, QuantumState};
 use aligned_vec::AVec;
+use num_complex::Complex;
 use rand::Rng;
 use std::arch::x86_64::*;
 
 #[derive(Clone)]
 pub struct CPUSimulator {
-    state_vector: AVec<Complex>,
+    state_vector: AVec<Complex<f64>>,
     num_qubits: usize,
 }
 
@@ -43,7 +44,7 @@ impl CPUSimulator {
         }
     }
 
-    pub fn from_state(state_vector: Box<[Complex]>, num_qubits: usize) -> Self {
+    pub fn from_state(state_vector: Box<[Complex<f64>]>, num_qubits: usize) -> Self {
         let mut aligned_vec = AVec::new(64);
         aligned_vec.resize(state_vector.len(), Complex::new(0.0, 0.0));
 
@@ -429,7 +430,7 @@ impl QuantumSimulator for CPUSimulator {
 
         // Find the collapsed state using the same efficient sampling
         for (i, amplitude) in self.state_vector.iter().enumerate() {
-            cumulative_prob += amplitude.norm_squared();
+            cumulative_prob += amplitude.norm_sqr();
             if r <= cumulative_prob {
                 // Only set the bits for qubits in the measurement order
                 for &qubit_idx in measurement_order {

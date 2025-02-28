@@ -1,9 +1,6 @@
+use num_complex::Complex;
 use quantum_forge::*;
 use std::collections::HashMap;
-use std::f64::EPSILON;
-// use quantum_forge::complex::Complex;
-
-const NORM_EPSILON: f64 = 1e-14;
 
 #[cfg(test)]
 mod tests {
@@ -226,7 +223,7 @@ mod tests {
         let (circuit, _) = QuantumCircuit::from_qasm(qasm).unwrap();
 
         // Create test state
-        let mut state = QuantumState::new(1);
+        let state = QuantumState::new(1);
 
         // Apply circuit (H → S)
         let state = circuit.apply_to_state(&state).unwrap();
@@ -472,8 +469,8 @@ mod tests {
         // Test on normalized superposition state
         let mut state = QuantumState::new(1);
         let norm = (0.6_f64.powi(2) + 0.8_f64.powi(2)).sqrt();
-        state.amplitudes[0] = Complex::new(0.6 / norm, 0.0);
-        state.amplitudes[1] = Complex::new(0.8 / norm, 0.0);
+        state.amplitudes[0] = Complex::<f64>::new(0.6 / norm, 0.0);
+        state.amplitudes[1] = Complex::<f64>::new(0.8 / norm, 0.0);
 
         println!("Initial state: {:?}", state.amplitudes);
         let interim = circuit.apply_to_state(&state).unwrap();
@@ -615,7 +612,7 @@ mod tests {
         let state = QuantumState::new(2);
         let final_state = circuit.apply_to_state(&state).unwrap();
         let inverse_circuit = circuit.inverse();
-        let mut restored_state = inverse_circuit.apply_to_state(&final_state).unwrap();
+        let restored_state = inverse_circuit.apply_to_state(&final_state).unwrap();
 
         // Check if the state is restored
         for (a, b) in restored_state
