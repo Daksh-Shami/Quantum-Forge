@@ -20,7 +20,7 @@ jobs:
       - name: Install CUDA Toolkit
         uses: Jimver/cuda-toolkit@v0.2.21
         with:
-          cuda: "12.2" # Specify the CUDA version
+          cuda: "12.2.0" # Specify the CUDA version
           method: "network" # Network install is lighter on Linux
 
       - name: Install Rust
