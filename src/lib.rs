@@ -2,7 +2,6 @@ use crate::simulator::{create_simulator_from_state, SimulatorType};
 use bitvec_simd::BitVec;
 use memory_stats::memory_stats;
 use mimalloc::MiMalloc;
-use num_complex::Complex;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -21,9 +20,10 @@ pub static PEAK_MEMORY: AtomicUsize = AtomicUsize::new(0);
 pub mod algorithm_runner;
 pub mod algorithms;
 pub mod circuit_executor;
-// pub mod parser;
-
+pub mod complex;
+pub use complex::Complex;
 pub mod simulator;
+
 use simulator::QuantumSimulator;
 
 // Optimized bit operations
@@ -135,20 +135,20 @@ impl QuantumCircuit {
         let instructions = parse_qasm(input)?;
         let mut circuit = None;
         let mut measurement_order = Vec::new();
-        let mut qreg_map: HashMap<String, usize> = HashMap::default();
-        let mut creg_map: HashMap<String, usize> = HashMap::default();
+        let mut qreg_map: HashMap<String, usize> = HashMap::new();
+        let mut creg_map: HashMap<String, usize> = HashMap::new();
 
         for instruction in instructions {
             match instruction {
                 QASMInstruction::QReg(name, size) => {
                     circuit = Some(Self::with_simulator_type(size, SimulatorType::default()));
-                    qreg_map.insert(name, 0); // Store the register start index
+                    qreg_map.insert(name.to_string(), 0); // Store the register start index
                 }
                 QASMInstruction::CReg(name, size) => {
                     if let Some(ref mut c) = circuit {
                         let reg_index = c.classical_registers.len();
-                        c.add_classical_register(name.clone(), size);
-                        creg_map.insert(name, reg_index);
+                        c.add_classical_register(size);
+                        creg_map.insert(name.to_string(), reg_index);
                     }
                 }
                 QASMInstruction::Hadamard(_reg, idx) => {
@@ -217,7 +217,7 @@ impl QuantumCircuit {
         self.gates.push(gate);
     }
 
-    pub fn add_classical_register(&mut self, _name: String, size: usize) {
+    pub fn add_classical_register(&mut self, size: usize) {
         self.classical_registers.push(BitVec::zeros(size));
     }
 
@@ -278,7 +278,7 @@ impl QuantumCircuit {
     pub fn apply_to_state(&self, initial_state: &QuantumState) -> Result<QuantumState, String> {
         let mut simulator = create_simulator_from_state(
             self.simulator_type,
-            initial_state.amplitudes.clone(),
+            &initial_state.amplitudes,
             initial_state.qubit_count,
         );
 
@@ -289,11 +289,11 @@ impl QuantumCircuit {
         simulator.get_state()
     }
 
-    pub fn measureall(&self, measurement_order: &[usize]) -> Result<MeasurementResult, String> {
+    pub fn measureall(&self, _measurement_order: &[usize]) -> Result<MeasurementResult, String> {
         let state = self.apply_to_state(&QuantumState::new(self.qubit_count))?;
         let simulator =
-            create_simulator_from_state(self.simulator_type, state.amplitudes, state.qubit_count);
-        simulator.measure(measurement_order)
+            create_simulator_from_state(self.simulator_type, &state.amplitudes, state.qubit_count);
+        simulator.measure()
     }
 
     pub fn update_classical_registers(
@@ -309,9 +309,9 @@ impl QuantumCircuit {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct QuantumState {
-    pub amplitudes: Vec<Complex<f64>>,
+    pub amplitudes: Vec<Complex>,
     pub qubit_count: usize,
 }
 
@@ -325,7 +325,7 @@ impl QuantumState {
         }
     }
 
-    pub fn from_amplitudes(amplitudes: Vec<Complex<f64>>) -> Self {
+    pub fn from_amplitudes(amplitudes: Vec<Complex>) -> Self {
         let qubit_count = (amplitudes.len() as f64).log2() as usize;
         Self {
             amplitudes,
@@ -333,7 +333,7 @@ impl QuantumState {
         }
     }
 
-    pub fn from_amplitudes_ref(amplitudes: &[Complex<f64>]) -> Self {
+    pub fn from_amplitudes_ref(amplitudes: &[Complex]) -> Self {
         let qubit_count = (amplitudes.len() as f64).log2() as usize;
         Self {
             amplitudes: amplitudes.to_vec(),
@@ -341,10 +341,11 @@ impl QuantumState {
         }
     }
 
-    pub fn to_simulator<S: QuantumSimulator + From<(Vec<Complex<f64>>, usize)>>(
-        &self,
-    ) -> Result<S, String> {
-        Ok(S::from((self.amplitudes.clone(), self.qubit_count)))
+    pub fn to_simulator<'a, S>(&'a self) -> Result<S, String>
+    where
+        S: QuantumSimulator + From<(&'a [Complex], usize)>,
+    {
+        Ok(S::from((&self.amplitudes, self.qubit_count)))
     }
 
     #[inline]
@@ -491,18 +492,6 @@ pub enum QASMInstruction {
     Reset(String, usize),
 }
 
-macro_rules! parse_register_info {
-    ($reg_info:expr) => {{
-        let reg_info = $reg_info.trim_matches(|c| c == ';' || c == '[' || c == ']');
-        let (name, size) = reg_info.split_once('[').ok_or("Invalid register format")?;
-        let size = size
-            .trim_end_matches(']')
-            .parse()
-            .map_err(|e| format!("Invalid register size: {}", e))?;
-        (name.to_string(), size)
-    }};
-}
-
 fn parse_angle(angle_str: &str) -> Result<f64, String> {
     let angle_str = angle_str.trim();
 
@@ -568,25 +557,30 @@ impl FromStr for QASMInstruction {
             }
         } else {
             match parts[0] {
-                "qreg" => {
-                    let (name, size) = parse_register_info!(parts[1]);
-                    Ok(QASMInstruction::QReg(name, size))
-                }
-                "creg" => {
-                    let (name, size) = parse_register_info!(parts[1]);
-                    Ok(QASMInstruction::CReg(name, size))
+                "qreg" | "creg" => {
+                    let reg_info = parts[1].trim_matches(|c| c == ';' || c == '[' || c == ']');
+                    let (name, size) = reg_info.split_once('[').ok_or("Invalid register format")?;
+                    let size = size
+                        .trim_end_matches(']')
+                        .parse()
+                        .map_err(|e| format!("Invalid register size: {}", e))?;
+                    if parts[0] == "qreg" {
+                        Ok(QASMInstruction::QReg(name.to_string(), size))
+                    } else {
+                        Ok(QASMInstruction::CReg(name.to_string(), size))
+                    }
                 }
                 "x" => {
                     let (reg, index) = parse_qubit(parts[1])?;
                     Ok(QASMInstruction::X(reg, index))
                 }
-                "h" => {
+                "h" | "s" => {
                     let (reg, index) = parse_qubit(parts[1])?;
-                    Ok(QASMInstruction::Hadamard(reg, index))
-                }
-                "s" => {
-                    let (reg, index) = parse_qubit(parts[1])?;
-                    Ok(QASMInstruction::Phase(reg, index))
+                    if parts[0] == "h" {
+                        Ok(QASMInstruction::Hadamard(reg, index))
+                    } else {
+                        Ok(QASMInstruction::Phase(reg, index))
+                    }
                 }
                 "cx" => {
                     let args = parts[1..].join("");
