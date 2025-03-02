@@ -1,9 +1,5 @@
 use quantum_forge::*;
 use std::collections::HashMap;
-use std::f64::EPSILON;
-// use quantum_forge::complex::Complex;
-
-const NORM_EPSILON: f64 = 1e-14;
 
 #[cfg(test)]
 mod tests {
@@ -220,7 +216,7 @@ mod tests {
         let (circuit, _) = QuantumCircuit::from_qasm(qasm).unwrap();
 
         // Create test state
-        let mut state = QuantumState::new(1);
+        let state = QuantumState::new(1);
 
         // Apply circuit (H → S)
         let state = circuit.apply_to_state(&state).unwrap();
@@ -606,7 +602,7 @@ const NORM_EPSILON: f64 = 1e-14;  // More appropriate for norm calculations
         let state = QuantumState::new(2);
         let final_state = circuit.apply_to_state(&state).unwrap();
         let inverse_circuit = circuit.inverse();
-        let mut restored_state = inverse_circuit.apply_to_state(&final_state).unwrap();
+        let restored_state = inverse_circuit.apply_to_state(&final_state).unwrap();
 
         // Check if the state is restored
         for (a, b) in restored_state.amplitudes.iter()

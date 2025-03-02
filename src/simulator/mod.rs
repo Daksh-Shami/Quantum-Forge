@@ -106,9 +106,9 @@ mod cpu;
 pub use cpu::CPUSimulator;
 
 // Implement From trait for CPUSimulator
-impl From<(Vec<Complex>, usize)> for CPUSimulator {
-    fn from((amplitudes, num_qubits): (Vec<Complex>, usize)) -> Self {
-        CPUSimulator::from_state(amplitudes, num_qubits)
+impl From<(&[Complex], usize)> for CPUSimulator {
+    fn from((amplitudes, num_qubits): (&[Complex], usize)) -> Self {
+        CPUSimulator::from_state(amplitudes.to_vec(), num_qubits)
     }
 }
 
@@ -121,9 +121,9 @@ pub fn create_simulator(sim_type: SimulatorType, num_qubits: usize) -> Box<dyn Q
 }
 
 // Factory function to create simulators from an existing state
-pub fn create_simulator_from_state(sim_type: SimulatorType, amplitudes: Vec<Complex>, num_qubits: usize) -> Box<dyn QuantumSimulator> {
+pub fn create_simulator_from_state(sim_type: SimulatorType, amplitudes: &[Complex], num_qubits: usize) -> Box<dyn QuantumSimulator> {
     match sim_type {
-        SimulatorType::CPU => Box::new(CPUSimulator::from_state(amplitudes, num_qubits)),
+        SimulatorType::CPU => Box::new(CPUSimulator::from_state(amplitudes.to_vec(), num_qubits)),
         // SimulatorType::GPU => Box::new(GPUSimulator::from_state(amplitudes, num_qubits)),
     }
 }
