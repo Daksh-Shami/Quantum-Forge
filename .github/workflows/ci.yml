@@ -36,11 +36,6 @@ jobs:
           cuda: "12.2.0"
           method: "network"
 
-      - name: Verify CUDA Installation
-        run: |
-          nvcc --version
-          nvidia-smi || echo "No GPU detected"
-
       - name: Build Quantum Forge
         run: cargo build --release
 
