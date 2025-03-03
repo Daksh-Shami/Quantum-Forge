@@ -70,8 +70,7 @@
 // - Optimizing common operations like state vector manipulation
 // - Using appropriate data structures for the target platform
 
-use crate::{MeasurementResult, QuantumGate, QuantumState};
-use num_complex::Complex;
+use crate::{Complex, MeasurementResult, QuantumGate, QuantumState};
 
 #[derive(Clone, Copy, Debug)]
 pub enum SimulatorType {
@@ -91,7 +90,7 @@ pub trait QuantumSimulator: Send + Sync {
     fn apply_gate(&mut self, gate: &QuantumGate) -> Result<(), String>;
 
     /// Measure the quantum state, returning classical measurement results
-    fn measure(&self, measurement_order: &[usize]) -> Result<MeasurementResult, String>;
+    fn measure(&self) -> Result<MeasurementResult, String>;
 
     /// Get the current quantum state
     fn get_state(&self) -> Result<QuantumState, String>;
@@ -103,14 +102,13 @@ pub trait QuantumSimulator: Send + Sync {
     fn memory_estimate(&self) -> usize;
 }
 
-pub mod cpu;
-
+mod cpu;
 pub use cpu::CPUSimulator;
 
 // Implement From trait for CPUSimulator
-impl From<(Vec<Complex<f64>>, usize)> for CPUSimulator {
-    fn from((amplitudes, num_qubits): (Vec<Complex<f64>>, usize)) -> Self {
-        CPUSimulator::from_state(amplitudes.into_boxed_slice(), num_qubits)
+impl From<(&[Complex], usize)> for CPUSimulator {
+    fn from((amplitudes, num_qubits): (&[Complex], usize)) -> Self {
+        CPUSimulator::from_state(amplitudes.to_vec(), num_qubits)
     }
 }
 
@@ -125,14 +123,11 @@ pub fn create_simulator(sim_type: SimulatorType, num_qubits: usize) -> Box<dyn Q
 // Factory function to create simulators from an existing state
 pub fn create_simulator_from_state(
     sim_type: SimulatorType,
-    amplitudes: Vec<Complex<f64>>,
+    amplitudes: &[Complex],
     num_qubits: usize,
 ) -> Box<dyn QuantumSimulator> {
     match sim_type {
-        SimulatorType::CPU => Box::new(CPUSimulator::from_state(
-            amplitudes.into_boxed_slice(),
-            num_qubits,
-        )),
+        SimulatorType::CPU => Box::new(CPUSimulator::from_state(amplitudes.to_vec(), num_qubits)),
         // SimulatorType::GPU => Box::new(GPUSimulator::from_state(amplitudes, num_qubits)),
     }
 }

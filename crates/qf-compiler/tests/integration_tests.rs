@@ -1,5 +1,4 @@
-use num_complex::Complex;
-use quantum_forge::*;
+use qf_compiler::*;
 use std::collections::HashMap;
 
 #[cfg(test)]

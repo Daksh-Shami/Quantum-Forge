@@ -1,0 +1,17 @@
+[package]
+name = "qf-parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+oq3_lexer.workspace = true
+oq3_parser.workspace = true
+oq3_syntax.workspace = true
+oq3_semantics.workspace = true
+serde.workspace = true
+rayon.workspace = true
+smallvec.workspace = true
+
+[lib]
+name = "qf_parser"
+path = "src/lib.rs"
