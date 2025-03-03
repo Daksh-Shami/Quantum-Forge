@@ -1,0 +1,16 @@
+[package]
+name = "qf-ir"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde.workspace = true
+ndarray.workspace = true
+rayon.workspace = true
+smallvec.workspace = true
+rustc-hash.workspace = true
+oq3_syntax.workspace = true
+
+[lib]
+name = "qf_ir"
+path = "src/lib.rs"
