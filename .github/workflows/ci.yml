@@ -24,7 +24,6 @@ jobs:
         uses: Jimver/cuda-toolkit@v0.2.21
         with:
           method: "network"
-          linux-local-args: "--toolkit"
 
       - name: Build Quantum Forge
         run: cargo build --release
