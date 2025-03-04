@@ -1,4 +1,4 @@
-use quantum_forge::*;
+use qf_compiler::*;
 use std::collections::HashMap;
 
 #[cfg(test)]
@@ -122,8 +122,12 @@ mod tests {
         let final_state = circuit.apply_to_state(&initial_state).unwrap();
 
         // Check if state remains unchanged
-        assert!((initial_state.amplitudes[0].re - final_state.amplitudes[0].re).abs() < NORM_EPSILON);
-        assert!((initial_state.amplitudes[0].im - final_state.amplitudes[0].im).abs() < NORM_EPSILON);
+        assert!(
+            (initial_state.amplitudes[0].re - final_state.amplitudes[0].re).abs() < NORM_EPSILON
+        );
+        assert!(
+            (initial_state.amplitudes[0].im - final_state.amplitudes[0].im).abs() < NORM_EPSILON
+        );
     }
 
     #[test]
@@ -141,10 +145,12 @@ mod tests {
 
         // Check probability amplitudes match (up to global phase)
         assert!(
-            (initial_state.amplitudes[0].norm() - final_state.amplitudes[0].norm()).abs() < NORM_EPSILON
+            (initial_state.amplitudes[0].norm() - final_state.amplitudes[0].norm()).abs()
+                < NORM_EPSILON
         );
         assert!(
-            (initial_state.amplitudes[1].norm() - final_state.amplitudes[1].norm()).abs() < NORM_EPSILON
+            (initial_state.amplitudes[1].norm() - final_state.amplitudes[1].norm()).abs()
+                < NORM_EPSILON
         );
     }
 
@@ -333,23 +339,23 @@ mod tests {
         "#;
 
         let (circuit, measurement_order) = QuantumCircuit::from_qasm(qasm).unwrap();
-        
+
         // Check gates
         let gates = circuit.gates();
         assert_eq!(gates.len(), 2);
-        
+
         // Check first gate is Hadamard on qubit 0
         match gates[0] {
             QuantumGate::Hadamard(q) => assert_eq!(q, 0),
             _ => panic!("Expected Hadamard gate"),
         }
-        
+
         // Check second gate is CNOT from qubit 0 to 1
         match gates[1] {
             QuantumGate::CNOT(c, t) => {
                 assert_eq!(c, 0);
                 assert_eq!(t, 1);
-            },
+            }
             _ => panic!("Expected CNOT gate"),
         }
 
@@ -400,13 +406,15 @@ mod tests {
         let mut circuit = QuantumCircuit::new(2);
         circuit.add_gate(hadamard(0));
         circuit.add_gate(cnot(0, 1));
-        
+
         let state = QuantumState::new(2);
         let final_state = circuit.apply_to_state(&state).unwrap();
         let inverse_circuit = circuit.inverse();
         let restored_state = inverse_circuit.apply_to_state(&final_state).unwrap();
-        
-        restored_state.amplitudes.iter()
+
+        restored_state
+            .amplitudes
+            .iter()
             .zip(state.amplitudes.iter())
             .for_each(|(a, b)| {
                 assert!((a.clone() - b.clone()).norm() < 1e-10);
@@ -418,18 +426,18 @@ mod tests {
         let mut circuit = QuantumCircuit::new(2);
         circuit.add_gate(hadamard(0));
         circuit.add_gate(cnot(0, 1));
-        
+
         let final_state = circuit.apply_to_state(&QuantumState::new(2)).unwrap();
         let measured_state = final_state.measure();
-        
+
         // Verify the measured state is valid
         assert!(measured_state.len() == 2);
         let bits = measured_state.as_bitvec();
         // Due to superposition, bits can be either both 0 or both 1
         assert!(
-            (bits[0] == false && bits[1] == false) || 
-            (bits[0] == true && bits[1] == true),
-            "Expected both bits to be equal, got {:?}", bits
+            (bits[0] == false && bits[1] == false) || (bits[0] == true && bits[1] == true),
+            "Expected both bits to be equal, got {:?}",
+            bits
         );
     }
 
@@ -439,11 +447,13 @@ mod tests {
         circuit.add_gate(hadamard(0));
         circuit.add_gate(cnot(0, 1));
         circuit.add_gate(toffoli(0, 1, 2));
-        
+
         let final_state = circuit.apply_to_state(&QuantumState::new(3)).unwrap();
-        
+
         // Verify amplitudes sum to 1 (within numerical precision)
-        let sum: f64 = final_state.amplitudes.iter()
+        let sum: f64 = final_state
+            .amplitudes
+            .iter()
             .map(|x| x.norm().powi(2))
             .sum();
         assert!((sum - 1.0).abs() < 1e-10);
@@ -454,19 +464,19 @@ mod tests {
         let mut circuit = QuantumCircuit::new(1);
         circuit.add_gate(hadamard(0));
         circuit.add_gate(hadamard(0));
-        
+
         // Test on normalized superposition state
         let mut state = QuantumState::new(1);
         let norm = (0.6_f64.powi(2) + 0.8_f64.powi(2)).sqrt();
         state.amplitudes[0] = Complex::new(0.6 / norm, 0.0);
         state.amplitudes[1] = Complex::new(0.8 / norm, 0.0);
-        
+
         println!("Initial state: {:?}", state.amplitudes);
         let interim = circuit.apply_to_state(&state).unwrap();
         println!("After first H: {:?}", interim.amplitudes);
         let result = circuit.apply_to_state(&state).unwrap();
         println!("After second H: {:?}", result.amplitudes);
-        
+
         // H·H|ψ⟩ = |ψ⟩
         assert!((state.amplitudes[0].norm() - result.amplitudes[0].norm()).abs() < NORM_EPSILON);
         assert!((state.amplitudes[1].norm() - result.amplitudes[1].norm()).abs() < NORM_EPSILON);
@@ -478,18 +488,18 @@ mod tests {
         circuit.add_gate(hadamard(0));
         circuit.add_gate(phase(0));
         circuit.add_gate(hadamard(0));
-        
+
         let state = QuantumState::new(1);
         let result = circuit.apply_to_state(&state).unwrap();
-        
+
         println!("Final amplitudes: {:?}", result.amplitudes);
-        
+
         let prob_0 = result.amplitudes[0].norm().powi(2);
         let prob_1 = result.amplitudes[1].norm().powi(2);
         println!("Probability 0: {}", prob_0);
         println!("Probability 1: {}", prob_1);
         println!("Sum: {}", prob_0 + prob_1);
-        
+
         // Use more appropriate NORM_EPSILON for probability sums
         assert!((prob_0 + prob_1 - 1.0).abs() < NORM_EPSILON);
         assert!((prob_0 - 0.5).abs() < NORM_EPSILON);
@@ -500,15 +510,14 @@ mod tests {
     fn test_hadamard_preserves_norm() {
         let mut circuit = QuantumCircuit::new(1);
         circuit.add_gate(hadamard(0));
-        
+
         let mut state = QuantumState::new(1);
         state.amplitudes[0] = Complex::new(1.0 / 2.0_f64.sqrt(), 0.0);
         state.amplitudes[1] = Complex::new(1.0 / 2.0_f64.sqrt(), 0.0);
-        
+
         let result = circuit.apply_to_state(&state).unwrap();
-        
-        let total_prob = result.amplitudes[0].norm().powi(2) + 
-                        result.amplitudes[1].norm().powi(2);
+
+        let total_prob = result.amplitudes[0].norm().powi(2) + result.amplitudes[1].norm().powi(2);
         println!("Total probability: {}", total_prob);
         assert!((total_prob - 1.0).abs() < NORM_EPSILON);
     }
@@ -517,57 +526,57 @@ mod tests {
     fn test_hadamard_math() {
         let mut circuit = QuantumCircuit::new(1);
         circuit.add_gate(hadamard(0));
-        
+
         // Test on |0⟩ state
         let state0 = QuantumState::new(1); // |0⟩
         let result0 = circuit.apply_to_state(&state0).unwrap();
-        
+
         // H|0⟩ = 1/√2(|0⟩ + |1⟩)
         let frac_1_sqrt_2 = 1.0_f64 / 2.0_f64.sqrt();
         assert!((result0.amplitudes[0].re - frac_1_sqrt_2).abs() < NORM_EPSILON);
         assert!(result0.amplitudes[0].im.abs() < NORM_EPSILON);
         assert!((result0.amplitudes[1].re - frac_1_sqrt_2).abs() < NORM_EPSILON);
         assert!(result0.amplitudes[1].im.abs() < NORM_EPSILON);
-        
+
         // Test on |1⟩ state
         let mut state1 = QuantumState::new(1);
         state1.amplitudes[0] = Complex::new(0.0, 0.0);
         state1.amplitudes[1] = Complex::new(1.0, 0.0);
         let result1 = circuit.apply_to_state(&state1).unwrap();
-        
+
         // H|1⟩ = 1/√2(|0⟩ - |1⟩)
         assert!((result1.amplitudes[0].re - frac_1_sqrt_2).abs() < NORM_EPSILON);
         assert!(result1.amplitudes[0].im.abs() < NORM_EPSILON);
         assert!((result1.amplitudes[1].re + frac_1_sqrt_2).abs() < NORM_EPSILON);
         assert!(result1.amplitudes[1].im.abs() < NORM_EPSILON);
     }
-    
+
     #[test]
     fn test_phase_gate_math() {
         let mut circuit = QuantumCircuit::new(1);
         circuit.add_gate(phase(0));
-        
+
         // Test on |0⟩ state
         let state0 = QuantumState::new(1);
         let result0 = circuit.apply_to_state(&state0).unwrap();
-        
+
         // S|0⟩ = |0⟩
         assert!((result0.amplitudes[0].re - 1.0).abs() < NORM_EPSILON);
         assert!(result0.amplitudes[0].im.abs() < NORM_EPSILON);
         assert!(result0.amplitudes[1].norm() < NORM_EPSILON);
-        
+
         // Test on |1⟩ state
         let mut state1 = QuantumState::new(1);
         state1.amplitudes[0] = Complex::new(0.0, 0.0);
         state1.amplitudes[1] = Complex::new(1.0, 0.0);
         let result1 = circuit.apply_to_state(&state1).unwrap();
-        
+
         // S|1⟩ = i|1⟩
         assert!(result1.amplitudes[0].norm() < NORM_EPSILON);
         assert!(result1.amplitudes[1].re.abs() < NORM_EPSILON);
         assert!((result1.amplitudes[1].im - 1.0).abs() < NORM_EPSILON);
     }
-    
+
     #[test]
     fn test_phase_gate_repeated() {
         // S·S·S·S should equal identity
@@ -575,14 +584,14 @@ mod tests {
         for _ in 0..4 {
             circuit.add_gate(phase(0));
         }
-        
+
         // Test on arbitrary superposition
         let mut state = QuantumState::new(1);
         state.amplitudes[0] = Complex::new(0.6, 0.0);
         state.amplitudes[1] = Complex::new(0.8, 0.0);
-        
+
         let result = circuit.apply_to_state(&state).unwrap();
-        
+
         // S⁴|ψ⟩ = |ψ⟩
         assert!((state.amplitudes[0].re - result.amplitudes[0].re).abs() < NORM_EPSILON);
         assert!((state.amplitudes[0].im - result.amplitudes[0].im).abs() < NORM_EPSILON);
@@ -590,8 +599,8 @@ mod tests {
         assert!((state.amplitudes[1].im - result.amplitudes[1].im).abs() < NORM_EPSILON);
     }
 
-   // At the top with other constants
-const NORM_EPSILON: f64 = 1e-14;  // More appropriate for norm calculations
+    // At the top with other constants
+    const NORM_EPSILON: f64 = 1e-14; // More appropriate for norm calculations
 
     #[test]
     fn test_bell_state() {
@@ -605,8 +614,11 @@ const NORM_EPSILON: f64 = 1e-14;  // More appropriate for norm calculations
         let restored_state = inverse_circuit.apply_to_state(&final_state).unwrap();
 
         // Check if the state is restored
-        for (a, b) in restored_state.amplitudes.iter()
-            .zip(state.amplitudes.iter()) {
+        for (a, b) in restored_state
+            .amplitudes
+            .iter()
+            .zip(state.amplitudes.iter())
+        {
             assert!((a.clone() - b.clone()).norm() < 1e-10);
         }
     }

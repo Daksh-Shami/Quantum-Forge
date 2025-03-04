@@ -1,4 +1,4 @@
-use quantum_forge::*;
+use qf_compiler::*;
 use std::env;
 use std::fs::File;
 use std::io::{self, BufReader, Read};

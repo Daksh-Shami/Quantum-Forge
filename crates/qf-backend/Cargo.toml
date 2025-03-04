@@ -1,0 +1,17 @@
+[package]
+name = "qf-backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde.workspace = true
+tokio.workspace = true
+rayon.workspace = true
+futures.workspace = true
+scc.workspace = true
+oq3_semantics.workspace = true
+qf-ir = { path = "../qf-ir" }
+
+[lib]
+name = "qf_backend"
+path = "src/lib.rs"
