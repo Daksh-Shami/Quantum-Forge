@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use quantum_forge::*;
+use qf_compiler::*;
 use std::time::Duration;
 
 macro_rules! bench_circuit {

@@ -1,23 +1,13 @@
-cargo-features = ["profile-rustflags"]
-[package]
-name = "quantum_forge"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+resolver = "2"
+members = [
+    "crates/qf-compiler",
+    "crates/qf-parser",
+    "crates/qf-ir",
+    "crates/qf-backend"
+]
 
-[lib]
-name = "quantum_forge"
-path = "src/lib.rs"
-
-[[bin]]
-name = "quantum_compiler"
-path = "src/main.rs"
-
-[features]
-default = ["simd"]
-simd = []
-no_simd = []
-
-[dependencies]
+[workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
 ndarray = "0.15"
 approx = "0.5"
@@ -37,18 +27,7 @@ aligned-vec = "0.6.1"
 tokio = { version = "1.35", features = ["full"] }
 futures = "0.3"
 scc = "2.3.0"
-
-[profile.release]
-lto = "fat"
-codegen-units = 1
-panic = "abort"
-opt-level = 3
-rustflags = ["-C", "target-cpu=native", "-C", "target-feature=+avx2"]
-debug = false
-
-[dev-dependencies]
-criterion = { version = "0.3", features = ["html_reports"] }
-
-[[bench]]
-name = "quantum_bench"
-harness = false
+oq3_lexer = "0.7.0"   # OpenQASM 3 Lexer (IBM)
+oq3_parser = "0.7.0"
+oq3_syntax = "0.7.0"
+oq3_semantics = "0.7.0"

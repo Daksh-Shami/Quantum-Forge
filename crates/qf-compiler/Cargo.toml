@@ -1,0 +1,64 @@
+cargo-features = ["profile-rustflags"]
+
+[package]
+name = "qf-compiler"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "qf_compiler"
+path = "src/lib.rs"
+
+[[bin]]
+name = "qf-compiler"
+path = "src/main.rs"
+
+[features]
+default = ["simd"]
+simd = []
+no_simd = []
+
+[dependencies]
+serde.workspace = true
+ndarray.workspace = true
+approx.workspace = true
+rand.workspace = true
+rayon.workspace = true
+rustc-hash.workspace = true
+smallvec.workspace = true
+memory-stats.workspace = true
+bitvec_simd.workspace = true
+once_cell.workspace = true
+num_cpus.workspace = true
+bcrypt.workspace = true
+mimalloc.workspace = true
+colored.workspace = true
+dhat.workspace = true
+aligned-vec.workspace = true
+tokio.workspace = true
+futures.workspace = true
+scc.workspace = true
+oq3_lexer.workspace = true
+oq3_parser.workspace = true
+oq3_syntax.workspace = true
+oq3_semantics.workspace = true
+qf-parser = { path = "../qf-parser" }  # Linking the parser
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+opt-level = 3
+rustflags = ["-C", "target-cpu=native", "-C", "target-feature=+avx2"]
+debug = false
+
+[dev-dependencies]
+criterion = { version = "0.3", features = ["html_reports"] }
+
+[[bench]]
+name = "quantum_bench"
+harness = false
+
+[[test]]
+name = "integration_tests"
+path = "tests/integration_tests.rs"
