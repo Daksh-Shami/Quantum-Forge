@@ -20,28 +20,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Cache CUDA Toolkit
-        id: cache-cuda
-        uses: actions/cache@v4
-        with:
-          path: $HOME/cuda-12.2
-          key: cuda-12.2-ubuntu-22.04
-          restore-keys: |
-            cuda-
-
-      - name: Install CUDA Toolkit (If Not Cached)
-        if: steps.cache-cuda.outputs.cache-hit != 'true'
+      - name: Install CUDA Toolkit
         uses: Jimver/cuda-toolkit@v0.2.21
-        with:
-          cuda: "12.2.0"
-          method: "network"
-          install-location: "${HOME}/cuda-12.2"
-
-      - name: Set CUDA Paths
-        run: |
-          echo "export PATH=${HOME}/cuda-12.2/bin:$PATH" >> $GITHUB_ENV
-          echo "export LD_LIBRARY_PATH=${HOME}/cuda-12.2/lib64:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-          echo "export CUDA_HOME=${HOME}/cuda-12.2" >> $GITHUB_ENV
 
       - name: Build Quantum Forge
         run: cargo build --release
