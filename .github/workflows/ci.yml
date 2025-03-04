@@ -20,20 +20,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Cache CUDA Toolkit
-        id: cache-cuda
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/cuda-12.2
-          key: cuda-12.2-ubuntu-22.04
-          restore-keys: |
-            cuda-
-
-      - name: Install CUDA Toolkit (If Not Cached)
-        if: steps.cache-cuda.outputs.cache-hit != 'true'
+      - name: Install CUDA Toolkit
         uses: Jimver/cuda-toolkit@v0.2.21
         with:
-          cuda: "12.2.0"
           method: "network"
 
       - name: Build Quantum Forge
