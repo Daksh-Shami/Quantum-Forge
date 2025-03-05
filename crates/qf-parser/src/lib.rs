@@ -16,7 +16,7 @@ pub enum QasmError {
 /// Instead of `Arc<str>`, we store `content` inline and use a raw pointer (`*const LexedStr`) for lexed.
 /// This avoids reference counting and maintains efficiency.
 pub struct OwnedLexed {
-    pub content: String, // Owned heap-allocated content (inline)
+    pub content: String,          // Owned heap-allocated content (inline)
     pub lexed: LexedStr<'static>, // Borrowed, but we manually control its lifetime
 }
 
@@ -24,9 +24,10 @@ impl OwnedLexed {
     /// Reads a QASM file from `file_path` and produces an `OwnedLexed`.
     pub fn from_file<P: AsRef<Path>>(file_path: P) -> Result<Self, QasmError> {
         let content = fs::read_to_string(file_path)?;
-        
+
         // SAFETY: We ensure that `lexed` references `content`, which is stored inline.
-        let lexed = unsafe { std::mem::transmute::<LexedStr, LexedStr<'static>>(LexedStr::new(&content)) };
+        let lexed =
+            unsafe { std::mem::transmute::<LexedStr, LexedStr<'static>>(LexedStr::new(&content)) };
 
         Ok(Self { content, lexed })
     }
