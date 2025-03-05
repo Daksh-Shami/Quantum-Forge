@@ -21,7 +21,7 @@ ccx q[0], q[1], q[2];
 // Apply SWAP gate between qubits 3 and 4
 swap q[3], q[4];
 
-// Measure all qubits
+// Measure all qubits individually.
 c[0] = measure q[0];
 c[1] = measure q[1];
 c[2] = measure q[2];

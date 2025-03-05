@@ -1,9 +1,8 @@
-OPENQASM 2.0;
-include "qelib1.inc";
+OPENQASM 3.0;
+include "stdgates.inc";
 
-// Quantum and classical registers
-qreg q[12];
-creg c[12];
+qubit[12] q;
+bit[12] c;
 
 // Initialize auxiliary qubit (q[11]) to |1>
 x q[11];
@@ -30,12 +29,12 @@ cx q[5], q[11];
 cx q[7], q[11];
 cx q[9], q[11];
 
-// Apply additional RZ rotations and phase gates
-rz(pi/6) q[0];
+// Apply RZ rotations using `pi` notation
+rz(pi / 6) q[0];
 s q[2];
-rz(pi/8) q[4];
+rz(pi / 8) q[4];
 s q[6];
-rz(pi/12) q[8];
+rz(pi / 12) q[8];
 
 // Apply CNOT chain for entanglement
 cx q[0], q[1];
@@ -57,13 +56,13 @@ ccx q[6], q[7], q[8];
 ccx q[9], q[10], q[11];
 
 // Apply more RZ rotations for phase kickbacks
-rz(pi/4) q[1];
-rz(pi/5) q[3];
-rz(pi/7) q[5];
-rz(pi/9) q[7];
-rz(pi/11) q[9];
+rz(pi / 4) q[1];
+rz(pi / 5) q[3];
+rz(pi / 7) q[5];
+rz(pi / 9) q[7];
+rz(pi / 11) q[9];
 
-// Final round of Hadamard gates
+// Final Hadamard gates
 h q[0];
 h q[2];
 h q[4];
@@ -72,4 +71,4 @@ h q[8];
 h q[10];
 
 // Measurement
-measure q -> c;
+c = measure q;
