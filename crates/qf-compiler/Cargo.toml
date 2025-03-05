@@ -38,7 +38,6 @@ aligned-vec.workspace = true
 tokio.workspace = true
 futures.workspace = true
 scc.workspace = true
-oq3_lexer.workspace = true
 oq3_parser.workspace = true
 oq3_syntax.workspace = true
 oq3_semantics.workspace = true
