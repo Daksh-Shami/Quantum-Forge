@@ -8,7 +8,7 @@ A high-performance quantum compiler & simulation framework built in Rust, design
 
 ## Features (Alpha version)
 
-- **OpenQASM 3.0 Support**: Full parser implementation for the latest OpenQASM standard
+- **Open source Compiler w/ OpenQASM 3.0 Support**: Full IR implementation for the latest OpenQASM standard
 - **High-Performance Simulation**: Rust-based backend optimized for small-to-medium quantum circuits on any device
 - **Interactive Visualization**: Circuit building and visualization capabilities (in development)
 - **Modular Architecture**: Designed for extensibility and future hardware integration
@@ -28,8 +28,8 @@ Current progress:
 
 ### Prerequisites
 
-- Rust 1.71 or higher
-- Cargo
+- Rust
+- Command Line/Terminal
 
 ### Installation
 
