@@ -1,8 +1,8 @@
 # Quantum Forge
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Status](https://img.shields.io/badge/status-alpha-orange.svg)
-![Rust](https://img.shields.io/badge/rust-1.71+-orange.svg)
+![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)
+![Status](https://img.shields.io/badge/Status-Alpha-orange.svg)
+![Rust](https://img.shields.io/badge/Rust-1.71+-orange.svg)
 
 A high-performance quantum compiler & simulation framework built in Rust, designed for efficient quantum circuit execution and analysis.
 
