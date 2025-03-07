@@ -4,7 +4,7 @@
 ![Status](https://img.shields.io/badge/Status-Alpha-orange.svg)
 ![Rust](https://img.shields.io/badge/Rust-1.71+-orange.svg)
 
-A high-performance quantum compiler & simulation framework built in Rust, designed for efficient quantum circuit execution and analysis.
+A igh-performance Quantum compiler & simulation framework built in Rust, designed for efficient quantum circuit execution and analysis.
 
 ## Features (Alpha version)
 
