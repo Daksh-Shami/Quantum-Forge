@@ -11,7 +11,7 @@ A high-performance Quantum compiler & simulation framework built in Rust, design
 - **Open source Compiler w/ OpenQASM 3.0 Support**: Full IR implementation for the latest OpenQASM standard
 - **JIT compiler**: Compiles code in real-time using cranelift, thus offering blazing fast iteration for researchers
 - **High-Performance Simulation**: Rust-based backend optimized for small-to-medium quantum circuits on any device
-- **Interactive Visualization**: Fully integrated with Tauri, thus giving us framework to build tools like Circuit building and visualization capabilities (in development)
+- **Interactive Visualization**: Fully integrated with [Tauri](https://v2.tauri.app/), thus giving us framework to build tools like Circuit building and visualization capabilities (in development)
 - **Modular Architecture**: Designed for extensibility and future hardware integration
 
 ## Project Status
