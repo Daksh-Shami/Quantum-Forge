@@ -9,6 +9,7 @@ A high-performance quantum compiler & simulation framework built in Rust, design
 ## Features (Alpha version)
 
 - **Open source Compiler w/ OpenQASM 3.0 Support**: Full IR implementation for the latest OpenQASM standard
+- **JIT compiler**: Compiles code in real-time using cranelift, thus offering blazing fast iteration for researchers
 - **High-Performance Simulation**: Rust-based backend optimized for small-to-medium quantum circuits on any device
 - **Interactive Visualization**: Circuit building and visualization capabilities (in development)
 - **Modular Architecture**: Designed for extensibility and future hardware integration
