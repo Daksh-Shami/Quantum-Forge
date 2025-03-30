@@ -9,15 +9,6 @@ edition = "2021"
 name = "qf_compiler"
 path = "src/lib.rs"
 
-[[bin]]
-name = "qf-compiler"
-path = "src/main.rs"
-
-[features]
-default = ["simd"]
-simd = []
-no_simd = []
-
 [dependencies]
 serde.workspace = true
 ndarray.workspace = true
@@ -42,22 +33,24 @@ oq3_parser.workspace = true
 oq3_syntax.workspace = true
 oq3_semantics.workspace = true
 qf-parser = { path = "../qf-parser" }  # Linking the parser
-
-[profile.release]
-lto = "fat"
-codegen-units = 1
-panic = "abort"
-opt-level = 3
-rustflags = ["-C", "target-cpu=native", "-C", "target-feature=+avx2"]
-debug = false
+comfy-table.workspace = true
+statrs.workspace = true
 
 [dev-dependencies]
 criterion = { version = "0.3", features = ["html_reports"] }
 
 [[bench]]
-name = "quantum_bench"
+name = "bench"
 harness = false
 
 [[test]]
 name = "integration_tests"
 path = "tests/integration_tests.rs"
+
+[[example]]
+name = "bell_state"
+path = "examples/bell_state.rs"
+
+[[example]]
+name = "qft"
+path = "examples/qft.rs"

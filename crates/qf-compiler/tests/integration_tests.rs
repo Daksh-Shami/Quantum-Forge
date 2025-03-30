@@ -295,8 +295,8 @@ mod tests {
 
         let initial_state = QuantumState::new(3);
         let final_state = circuit.apply_to_state(&initial_state).unwrap();
-        let measured_state = final_state.measure();
-        println!("Measured state: {}", bitvec_to_string(&measured_state));
+        let measured_state = final_state.measure_raw(1);
+        println!("Measured state: {}", bitvec_to_string(&measured_state[0]));
     }
 
     #[test]
@@ -428,11 +428,11 @@ mod tests {
         circuit.add_gate(cnot(0, 1));
 
         let final_state = circuit.apply_to_state(&QuantumState::new(2)).unwrap();
-        let measured_state = final_state.measure();
+        let measured_state = final_state.measure_raw(1);
 
         // Verify the measured state is valid
-        assert!(measured_state.len() == 2);
-        let bits = measured_state.as_bitvec();
+        assert!(measured_state.len() == 1);
+        let bits = measured_state[0].as_bitvec();
         // Due to superposition, bits can be either both 0 or both 1
         assert!(
             (bits[0] == false && bits[1] == false) || (bits[0] == true && bits[1] == true),
