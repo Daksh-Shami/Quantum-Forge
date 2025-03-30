@@ -72,11 +72,7 @@ println!("Results: {:?}", results);
 
 Quantum Forge aims to provide superior performance for small-to-medium scale quantum circuit simulations. Initial benchmarks show promising results against existing frameworks:
 
-| Framework | 4-Qubit Circuit | 8-Qubit Circuit | 12-Qubit Circuit |
-|-----------|----------------|-----------------|------------------|
-| Quantum Forge | 0.5ms | 4.2ms | 123ms |
-| Qiskit | 1.2ms | 8.7ms | 195ms |
-| Cirq | 1.5ms | 9.3ms | 210ms |
+![Performance Benchmarks](./assets/benchmark.png)
 
 *Note: These are preliminary benchmarks for just demonstration, and will be expanded in future releases.*
 
