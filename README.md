@@ -34,39 +34,80 @@ Current progress:
 
 ### Installation
 
+#### Clone the repository
 ```bash
-# Clone the repository
-git clone https://github.com/Daksh-Shami/quantum-forge.git \\
-&& cd quantum-forge
-
-# Build the project
-cargo build --release
-
-# Run tests
-cargo test
+git clone https://github.com/Daksh-Shami/quantum-forge.git && cd quantum-forge
 ```
 
+#### Build the project
+```bash
+cargo build --release
+```
 > ⚠️ **WARNING (for Windows):**  
 > If your `cargo build` fails and you are on Windows, try running it again in **Developer PowerShell for VS Code 2022**.  
 > If you don't have it installed, please install **Visual Studio 2022** first.
 
+#### Run tests
+```bash
+cargo test
+```
+
+#### (Advanced, optional) Run benchmarks (vs. previous run of QF-compiler)
+```bash
+cargo bench
+```
+> This option is great for testing the effect of your changes. Whenever you made a change you think should improve the latency a lot, just run `cargo bench` and it will show you how much the performance improved relative to when you started. Key is **you should run this both before AND after making changes**.
 
 
 ### Basic Usage
 
+Quantum Forge provides a clean, intuitive API for building and simulating quantum circuits. Here's a simple example to create a Bell state:
+
 ```rust
-use quantum_forge::{QuantumCircuit, QuantumSimulator};
+use qf_compiler::{
+    QuantumCircuit, // Core structs
+    QuantumState,
+    cnot, // Gates
+    hadamard,
+};
 
-// Create a simple quantum circuit
-let mut circuit = QuantumCircuit::new(2);
-circuit.h(0);
-circuit.cx(0, 1);
-
-// Run simulation
-let simulator = QuantumSimulator::new();
-let results = simulator.run(circuit, 1000);
-println!("Results: {:?}", results);
+fn main() -> Result<(), String> {
+    // Define circuit parameters
+    let num_qubits = 2;
+    let shots = 1000; // Number of measurement simulations
+    
+    // Create an empty quantum circuit
+    let mut circuit = QuantumCircuit::new(num_qubits);
+    
+    // Add gates programmatically
+    circuit.add_gate(hadamard(0));  // Apply Hadamard to qubit 0
+    circuit.add_gate(cnot(0, 1));   // Apply CNOT with control qubit 0, target qubit 1
+    
+    // Simulation and measurement
+    let initial_state = QuantumState::new(num_qubits);
+    let final_state = circuit.apply_to_state(&initial_state)?;
+    
+    // Measure and print results
+    println!("{}", final_state.measure(shots));
+    // Expect states '00' and '11' with roughly equal probability
+    
+    Ok(())
+}
 ```
+
+### Examples
+
+Quantum Forge includes pre-built examples to help you get started:
+
+1. **Bell State** - A simple entanglement example:
+   ```bash
+   cargo run --release --example bell_state
+   ```
+2. **Quantum Fourier Transform (QFT)** - Implementation of the fundamental QFT algorithm:
+   ```bash
+   cargo run --release --example qft
+   ```
+Run these examples to see Quantum Forge in action and as a starting point for your own quantum algorithms.
 
 ## Performance
 
