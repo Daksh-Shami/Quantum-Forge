@@ -1,3 +1,6 @@
+
+cargo-features = ["profile-rustflags"]
+
 [workspace]
 resolver = "2"
 members = [
@@ -31,3 +34,13 @@ oq3_parser = "0.7.0"
 oq3_syntax = "0.7.0"
 oq3_semantics = "0.7.0"
 thiserror = "2.0.12"
+comfy-table = "7.1"
+statrs = "0.18.0"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+opt-level = 3
+rustflags = ["-C", "target-cpu=native", "-C", "target-feature=+avx2"]
+debug = false

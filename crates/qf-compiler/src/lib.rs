@@ -1,9 +1,11 @@
 use crate::simulator::{create_simulator_from_state, SimulatorType};
 use bitvec_simd::BitVec;
+use comfy_table::{presets::UTF8_FULL, Attribute, Cell, Color, ContentArrangement, Table};
 use memory_stats::memory_stats;
 use mimalloc::MiMalloc;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use statrs::distribution::{ChiSquared, ContinuousCDF};
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::f64::EPSILON;
@@ -16,7 +18,6 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 static GLOBAL: MiMalloc = MiMalloc;
 pub static PEAK_MEMORY: AtomicUsize = AtomicUsize::new(0);
 
-// Do not remove -- This adds algorithms module as a part of the core compiler.
 pub mod algorithm_runner;
 pub mod algorithms;
 pub mod circuit_executor;
@@ -101,6 +102,313 @@ impl QuantumGate {
             QuantumGate::CZ(c, t) => format!("cz q[{}],q[{}];", c, t),
             QuantumGate::Swap(q1, q2) => format!("swap q[{}],q[{}];", q1, q2),
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct MeasurementResults(pub Vec<MeasurementResult>);
+
+impl MeasurementResults {
+    pub fn new(results: Vec<MeasurementResult>) -> Self {
+        MeasurementResults(results)
+    }
+
+    pub fn count_outcomes(&self) -> HashMap<String, usize> {
+        let mut counts = HashMap::new();
+        for result in &self.0 {
+            let key = result.to_string();
+            *counts.entry(key).or_insert(0) += 1;
+        }
+        counts
+    }
+
+    pub fn shot_count(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn get_percentages(&self) -> HashMap<String, f64> {
+        let counts = self.count_outcomes();
+        let total = self.shot_count() as f64;
+        counts
+            .into_iter()
+            .map(|(k, v)| (k, (v as f64 / total) * 100.0))
+            .collect()
+    }
+
+    pub fn get_entropy(&self) -> f64 {
+        let percentages = self.get_percentages();
+        -percentages
+            .values()
+            .map(|p| {
+                let prob = p / 100.0;
+                if prob > 0.0 {
+                    prob * prob.log2()
+                } else {
+                    0.0
+                }
+            })
+            .sum::<f64>()
+    }
+
+    pub fn get_chi_squared_uniformity(&self) -> f64 {
+        let counts = self.count_outcomes();
+        let n = self.shot_count() as f64;
+        let expected = n / counts.len() as f64;
+
+        counts
+            .values()
+            .map(|&observed| {
+                let diff = observed as f64 - expected;
+                diff * diff / expected
+            })
+            .sum()
+    }
+
+    pub fn get_uniformity_test(&self) -> (f64, f64, bool) {
+        let chi_squared = self.get_chi_squared_uniformity();
+        let df = self.count_outcomes().len() - 1; // degrees of freedom
+
+        // Use the ChiSquared distribution from statrs
+        let chi_dist = ChiSquared::new(df as f64).unwrap();
+        let threshold = chi_dist.inverse_cdf(0.95);
+
+        (chi_squared, threshold, chi_squared < threshold)
+    }
+
+    pub fn raw_results(&self) -> String {
+        let mut output = String::new();
+        for (i, result) in self.0.iter().enumerate() {
+            if i > 0 {
+                output.push_str(", ");
+            }
+            output.push_str(&result.to_string());
+        }
+        output
+    }
+
+    pub fn analyze(&self) -> String {
+        let (chi_squared, threshold, is_uniform) = self.get_uniformity_test();
+        let entropy = self.get_entropy();
+        let max_entropy = (self.count_outcomes().len() as f64).log2();
+        let entropy_ratio = entropy / max_entropy;
+        let percentages = self.get_percentages();
+        let outcomes: Vec<_> = percentages.into_iter().collect();
+        let outcome_count = outcomes.len();
+
+        // Detect common quantum states and patterns
+        let is_power_of_two = outcome_count.is_power_of_two();
+        let state_size = if is_power_of_two {
+            (outcome_count as f64).log2() as usize
+        } else {
+            0
+        };
+
+        let mut analysis = String::new();
+        analysis.push_str("Analysis:\n");
+
+        // Pattern recognition section
+        if is_power_of_two && state_size > 0 {
+            // Check for bell-like states (only |00⟩ and |11⟩ with ~50% each)
+            if state_size == 2 && outcome_count == 2 {
+                let sorted = Self::sort_outcomes(&outcomes);
+                if sorted.len() == 2
+                    && (sorted[0].0 == "00" && sorted[1].0 == "11")
+                    && (sorted[0].1 - sorted[1].1).abs() < 5.0
+                {
+                    analysis.push_str("Pattern detected: Bell state (|00⟩ + |11⟩)/√2\n");
+                }
+            }
+
+            // Check for uniform superposition (possibly from Hadamard or QFT)
+            if entropy_ratio > 0.98 && is_uniform {
+                if state_size == 1 {
+                    analysis.push_str(
+                        "Pattern detected: Single qubit in equal superposition (|0⟩ + |1⟩)/√2\n",
+                    );
+                } else {
+                    analysis.push_str(&format!(
+                        "Pattern detected: Uniform superposition across {} qubits\n",
+                        state_size
+                    ));
+                    if outcomes.len() == (1 << state_size) {
+                        analysis
+                            .push_str("This may be the result of a Hadamard transform or QFT\n");
+                    }
+                }
+            }
+
+            // Check for computational basis state
+            let max_outcome = outcomes
+                .iter()
+                .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+                .unwrap();
+            if max_outcome.1 > 90.0 {
+                analysis.push_str(&format!(
+                    "Pattern detected: System predominantly in computational basis state |{}⟩\n",
+                    max_outcome.0
+                ));
+            }
+        }
+
+        // Distribution analysis (enhanced)
+        let sorted_outcomes = Self::sort_outcomes(&outcomes);
+
+        if outcome_count == 2 && (sorted_outcomes[0].1 - sorted_outcomes[1].1).abs() < 5.0 {
+            analysis.push_str("The outcomes are nearly equally distributed, suggesting a balanced quantum state.\n");
+        } else if outcome_count == 2 {
+            analysis.push_str(&format!(
+                "The outcomes show a bias towards '{}' ({:.1}%), indicating a non-uniform quantum state.\n",
+                sorted_outcomes[0].0, sorted_outcomes[0].1
+            ));
+        } else if outcome_count > 2 {
+            // For multi-outcome distributions, analyze clustering
+            if entropy_ratio > 0.95 {
+                analysis.push_str(&format!(
+                    "All {} possible outcomes appear with similar probabilities.\n",
+                    outcome_count
+                ));
+            } else {
+                // Identify the top 3 outcomes
+                let top_outcomes: Vec<_> = sorted_outcomes.iter().take(3).collect();
+                let top_sum: f64 = top_outcomes.iter().map(|(_, p)| p).sum();
+
+                if top_sum > 80.0 {
+                    analysis.push_str(&format!(
+                        "The distribution is concentrated in {} primary outcomes ({}), comprising {:.1}% of measurements.\n",
+                        top_outcomes.len(),
+                        top_outcomes.iter().map(|(s, _)| s.to_string()).collect::<Vec<_>>().join(", "),
+                        top_sum
+                    ));
+                }
+            }
+        }
+
+        // Entropy analysis (enhanced)
+        if entropy_ratio > 0.95 {
+            analysis.push_str(&format!(
+                "The high entropy ratio ({:.1}%) suggests maximal quantum superposition.\n",
+                entropy_ratio * 100.0
+            ));
+        } else if entropy_ratio > 0.7 {
+            analysis.push_str(&format!(
+                "The moderate entropy ratio ({:.1}%) indicates partial quantum superposition.\n",
+                entropy_ratio * 100.0
+            ));
+        } else {
+            analysis.push_str(&format!(
+                "The low entropy ratio ({:.1}%) suggests the state is approaching a classical state.\n", 
+                entropy_ratio * 100.0
+            ));
+        }
+
+        // Uniformity test interpretation (improved wording)
+        if is_uniform {
+            analysis.push_str(&format!(
+                "The χ² test ({:.3} < {:.3}) confirms the distribution is uniform at 95% confidence.\n",
+                chi_squared, threshold
+            ));
+        } else {
+            analysis.push_str(&format!(
+                "The χ² test ({:.3} > {:.3}) indicates non-uniform distribution at 95% confidence.\n",
+                chi_squared, threshold
+            ));
+        }
+
+        analysis
+    }
+
+    // Helper function to sort outcomes by probability
+    fn sort_outcomes(outcomes: &[(String, f64)]) -> Vec<(String, f64)> {
+        let mut sorted = outcomes.to_vec();
+        sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        sorted
+    }
+}
+
+impl fmt::Display for MeasurementResults {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut table = Table::new();
+        table
+            .load_preset(UTF8_FULL)
+            .set_content_arrangement(ContentArrangement::Dynamic)
+            .set_width(50);
+
+        // Header
+        table.set_header(vec![Cell::new("Quantum Measurement Results")
+            .add_attribute(Attribute::Bold)
+            .fg(Color::Cyan)]);
+
+        // Shot count
+        table.add_row(vec![format!("Shots: {}", self.shot_count())]);
+
+        // Distribution
+        let percentages = self.get_percentages();
+        let mut sorted_results: Vec<_> = percentages.into_iter().collect();
+        sorted_results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+
+        table.add_row(vec![Cell::new("Distribution")
+            .add_attribute(Attribute::Bold)
+            .fg(Color::Green)]);
+
+        for (outcome, percentage) in &sorted_results {
+            let count = self.count_outcomes()[outcome];
+            let bar_length = (percentage / 5.0).round() as usize;
+            let bar = "█".repeat(bar_length);
+            table.add_row(vec![format!(
+                "{}: {:.1}% {} ({})",
+                outcome, percentage, bar, count
+            )]);
+        }
+
+        // Statistical Analysis
+        table.add_row(vec![Cell::new("Statistical Analysis")
+            .add_attribute(Attribute::Bold)
+            .fg(Color::Yellow)]);
+
+        // Entropy
+        let entropy = self.get_entropy();
+        let max_entropy = (sorted_results.len() as f64).log2();
+        let entropy_ratio = (entropy / max_entropy * 100.0).round() / 100.0;
+
+        table.add_row(vec![format!(
+            "Entropy: {:.3}/{:.3} bits",
+            entropy, max_entropy
+        )]);
+        table.add_row(vec![format!(
+            "Entropy Ratio: {:.1}%",
+            entropy_ratio * 100.0
+        )]);
+
+        // Chi-squared test
+        let (chi_squared, threshold, is_uniform) = self.get_uniformity_test();
+        if threshold != f64::INFINITY {
+            table.add_row(vec![format!(
+                "χ² test: {:.3} (threshold: {:.3})",
+                chi_squared, threshold
+            )]);
+
+            let uniformity_cell = if is_uniform {
+                Cell::new("✓ Distribution is uniform")
+                    .fg(Color::Green)
+                    .add_attribute(Attribute::Bold)
+            } else {
+                Cell::new("✗ Distribution is not uniform")
+                    .fg(Color::Red)
+                    .add_attribute(Attribute::Bold)
+            };
+            table.add_row(vec![uniformity_cell]);
+        }
+
+        // Analysis
+        table.add_row(vec![Cell::new("Interpretation")
+            .add_attribute(Attribute::Bold)
+            .fg(Color::Blue)]);
+
+        for line in self.analyze().lines() {
+            table.add_row(vec![line]);
+        }
+
+        write!(f, "{}", table)
     }
 }
 
@@ -359,21 +667,62 @@ impl QuantumState {
         bv
     }
 
-    pub fn measure(&self) -> MeasurementResult {
-        let mut rng = rand::thread_rng();
-        let r: f64 = rng.gen();
-        let mut cumulative_prob = 0.0;
-
-        for (i, amplitude) in self.amplitudes.iter().enumerate() {
-            let prob = amplitude.norm().powi(2);
-            cumulative_prob += prob;
-
-            if r <= cumulative_prob {
-                return MeasurementResult::new(Self::index_to_bitvec(i, self.qubit_count));
-            }
+    pub fn set_computational_basis_state(&mut self, state_index: usize) -> Result<(), String> {
+        if state_index >= (1 << self.qubit_count) {
+            return Err(format!(
+                "State index {} exceeds maximum for {}-qubit system ({})",
+                state_index,
+                self.qubit_count,
+                (1 << self.qubit_count) - 1
+            ));
         }
 
-        MeasurementResult::new(BitVec::ones(self.qubit_count))
+        // Reset all amplitudes to zero
+        for amplitude in &mut self.amplitudes {
+            *amplitude = Complex::new(0.0, 0.0);
+        }
+
+        // Set the specified state to 1.0
+        self.amplitudes[state_index] = Complex::new(1.0, 0.0);
+
+        Ok(())
+    }
+
+    pub fn measure(&self, shots: usize) -> MeasurementResults {
+        MeasurementResults(self.measure_raw(shots))
+    }
+
+    pub fn measure_raw(&self, shots: usize) -> Vec<MeasurementResult> {
+        let mut results = Vec::with_capacity(shots);
+        let mut rng = rand::thread_rng();
+
+        let last_index = self.amplitudes.len().saturating_sub(1); // Handle empty amplitudes case if necessary
+
+        for _ in 0..shots {
+            let r: f64 = rng.gen();
+            let mut cumulative_prob = 0.0;
+            let mut measured_index = last_index; // Default to last index
+
+            for (i, amplitude) in self.amplitudes.iter().enumerate() {
+                let prob = amplitude.norm_squared();
+                // Check before adding the current probability if r is already covered
+                // Using '<' handles r=0 case correctly and avoids potential issues if prob=0
+                if r < cumulative_prob + prob {
+                    measured_index = i;
+                    break; // Found the index
+                }
+                cumulative_prob += prob;
+                // Optional safeguard for floating point accumulation errors slightly exceeding 1.0
+                // cumulative_prob = cumulative_prob.min(1.0);
+            }
+            // No extra check needed, measured_index is guaranteed to be set.
+            results.push(MeasurementResult::new(Self::index_to_bitvec(
+                measured_index,
+                self.qubit_count,
+            )));
+        }
+
+        results
     }
 
     pub fn measure_qubit(&self, index: usize) -> bool {
@@ -385,7 +734,7 @@ impl QuantumState {
         for (i, amplitude) in self.amplitudes.iter().enumerate() {
             if (i & bit_mask(index)) != 0 {
                 // Here
-                prob_one += amplitude.norm().powi(2);
+                prob_one += amplitude.norm_squared();
             }
         }
 
@@ -411,6 +760,24 @@ impl MeasurementResult {
 
     pub fn as_bitvec(&self) -> &BitVec {
         &self.0
+    }
+}
+
+impl fmt::Display for MeasurementResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for i in (0..self.0.len()).rev() {
+            // Iterate indices in reverse
+            write!(
+                f,
+                "{}",
+                if self.0.get(i).unwrap_or(false) {
+                    '1'
+                } else {
+                    '0'
+                }
+            )?;
+        }
+        Ok(())
     }
 }
 
@@ -574,13 +941,13 @@ impl FromStr for QASMInstruction {
                     let (reg, index) = parse_qubit(parts[1])?;
                     Ok(QASMInstruction::X(reg, index))
                 }
-                "h" | "s" => {
+                "h" => {
                     let (reg, index) = parse_qubit(parts[1])?;
-                    if parts[0] == "h" {
-                        Ok(QASMInstruction::Hadamard(reg, index))
-                    } else {
-                        Ok(QASMInstruction::Phase(reg, index))
-                    }
+                    Ok(QASMInstruction::Hadamard(reg, index))
+                }
+                "s" => {
+                    let (reg, index) = parse_qubit(parts[1])?;
+                    Ok(QASMInstruction::Phase(reg, index))
                 }
                 "cx" => {
                     let args = parts[1..].join("");
