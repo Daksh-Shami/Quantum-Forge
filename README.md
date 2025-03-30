@@ -6,7 +6,7 @@
 
 A high-performance Quantum compiler & simulation framework built in Rust, designed for efficient quantum circuit execution and analysis using intuitive UIs.
 
-## Features (Alpha version)
+## Feature Set for first release
 
 - **Open source Compiler w/ OpenQASM 3.0 Support**: Full IR implementation for the latest OpenQASM standard
 - **JIT compiler**: Compiles code in real-time using cranelift, thus offering blazing fast iteration for researchers
@@ -36,8 +36,8 @@ Current progress:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/quantum-forge.git
-cd quantum-forge
+git clone https://github.com/Daksh-Shami/quantum-forge.git \\
+&& cd quantum-forge
 
 # Build the project
 cargo build --release
@@ -45,6 +45,12 @@ cargo build --release
 # Run tests
 cargo test
 ```
+
+> ⚠️ **WARNING (for Windows):**  
+> If your `cargo build` fails and you are on Windows, try running it again in **Developer PowerShell for VS Code 2022**.  
+> If you don't have it installed, please install **Visual Studio 2022** first.
+
+
 
 ### Basic Usage
 
