@@ -1,6 +1,6 @@
 # QF Compiler
 
-The core quantum simulation and execution engine for the Quantum Forge project. This crate provides the foundation for simulating quantum circuits, implementing quantum algorithms, and executing quantum computations.
+The core quantum simulation and execution engine for the Qitara project. This crate provides the foundation for simulating quantum circuits, implementing quantum algorithms, and executing quantum computations.
 
 ## Features
 
