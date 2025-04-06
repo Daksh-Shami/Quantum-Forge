@@ -2,6 +2,14 @@
 
 First off, thank you for considering contributing to Quantum Forge! Your help is greatly appreciated. Please take a moment to review these guidelines.
 
+## Project Structure
+
+Quantum Forge is organized into multiple crates within a Rust workspace:
+
+- **Frontend Development**: If you're interested in contributing to the GUI frontend, please refer to the documentation in the [`crates/qf-frontend`](crates/qf-frontend/README.md) directory. The frontend is built using Tauri v2 and **any** web technology. Yes this means you can use React, Vue, Angular, Svelte, or any other framework you prefer and it will seamlessly integrate into one app using Tauri. So feel free to use anything you like and we can handle the rest, provided your changes are valuable additions as this adds significant complexity to the codebase.
+
+- **Backend Development**: For compiler and quantum computing backend contributions, please refer to the documentation in the [`crates/qf-compiler`](crates/qf-compiler) directory for now. This will be further divided into more directories in the future.
+
 ## Getting Started
 
 - Ensure you have a [GitHub account](https://github.com/signup/free).
@@ -16,7 +24,7 @@ We follow a standard GitHub flow for contributions. All development happens on t
 
 2.  **Clone Your Fork**:
     ```bash
-    git clone https://github.com/YOUR_USERNAME/Quantum-Forge.git
+    git clone https://github.com/Daksh-Shami/Quantum-Forge.git
     cd Quantum-Forge
     ```
 

@@ -7,11 +7,13 @@ members = [
     "crates/qf-compiler",
     "crates/qf-parser",
     "crates/qf-ir",
-    "crates/qf-backend"
+    "crates/qf-backend",
+    "crates/qf-frontend"
 ]
 
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 ndarray = "0.15"
 approx = "0.5"
 rand = { version = "0.8", features = ["small_rng"] }
