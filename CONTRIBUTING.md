@@ -70,7 +70,7 @@ We follow a standard GitHub flow for contributions. All development happens on t
     *   Click the "Compare & pull request" button for your branch.
     *   Ensure the base repository is `Daksh-Shami/Quantum-Forge` and the base branch is `dev`.
     *   Provide a clear title and description for your PR, explaining the changes and referencing any relevant issues (e.g., "Closes #123").
-    *   **Crucially, add `Daksh-Shami` as a reviewer** to your Pull Request. At a later date, we will relax this requirement to include more core contributors as reviewers.
+    *   **Crucially, add [`Daksh-Shami`](https://github.com/Daksh-Shami) as a reviewer** to your Pull Request. At a later date, we will relax this requirement to include more core contributors as reviewers.
 
 ## Working with Issues
 
