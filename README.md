@@ -1,9 +1,9 @@
-# Quantum Forge
+# Qitara
 
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)
 ![Status](https://img.shields.io/badge/Status-Alpha-orange.svg)
 ![Rust](https://img.shields.io/badge/Rust-Nightly-orange.svg)
-[![Quantum Forge CI](https://github.com/Daksh-Shami/Quantum-Forge/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/Daksh-Shami/Quantum-Forge/actions/workflows/ci.yml)
+[![Qitara CI](https://github.com/Daksh-Shami/Quantum-Forge/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/Daksh-Shami/Qitara/actions/workflows/ci.yml)
 
 A high-performance Quantum simulation & visualization framework built in Rust, designed for efficient quantum circuit execution and analysis using intuitive UIs.
 
@@ -17,7 +17,7 @@ A high-performance Quantum simulation & visualization framework built in Rust, d
 
 ## Project Status
 
-Quantum Forge is currently in **alpha development**. Core components like parsing, AST generation, and simulation backend are complete. Tauri-based UI and Cranelift-based JIT backend are in early stages.
+Qitara is currently in **alpha development**. Core components like parsing, AST generation, and simulation backend are complete. Tauri-based UI and Cranelift-based JIT backend are in early stages.
 
 See our [project milestones](../../milestones) for the development roadmap.
 
@@ -87,7 +87,7 @@ cargo bench
 
 ### Basic Usage
 
-Quantum Forge provides a clean, intuitive API for building and simulating quantum circuits. Here's a simple example to create a Bell state:
+Qitara provides a clean, intuitive API for building and simulating quantum circuits. Here's a simple example to create a Bell state:
 
 ```rust
 use qf_compiler::{
@@ -123,7 +123,7 @@ fn main() -> Result<(), String> {
 
 ### Examples
 
-Quantum Forge includes pre-built examples to help you get started:
+Qitara includes pre-built examples to help you get started:
 
 1. **Bell State** - A simple entanglement example:
    ```bash
@@ -133,15 +133,15 @@ Quantum Forge includes pre-built examples to help you get started:
    ```bash
    cargo run --release --example qft
    ```
-Run these examples to see Quantum Forge in action and as a starting point for your own quantum algorithms.
+Run these examples to see Qitara in action and as a starting point for your own quantum algorithms.
 
 ## Performance
 
-Quantum Forge aims to provide superior performance for small-to-medium scale quantum circuit simulations. Initial benchmarks show promising results against existing frameworks:
+Qitara aims to provide superior performance for small-to-medium scale quantum circuit simulations. Initial benchmarks show promising results against existing frameworks:
 
 ![Performance Benchmarks](./assets/benchmark.png)
 
-*Note: These are preliminary benchmarks for just demonstration, and will be expanded in future releases.*
+*Note: These are preliminary benchmarks for just demonstration, and will be expanded in future releases. Qitara was previously called Quantum Forge in pre-alpha phase.*
 
 ## Roadmap
 
@@ -167,4 +167,4 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 ---
 
-*Quantum Forge is not affiliated with any commercial quantum computing provider.*
+*Qitara is not affiliated with any commercial quantum computing provider.*
