@@ -3,16 +3,17 @@
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)
 ![Status](https://img.shields.io/badge/Status-Alpha-orange.svg)
 ![Rust](https://img.shields.io/badge/Rust-1.71+-orange.svg)
+[![Quantum Forge CI](https://github.com/Daksh-Shami/Quantum-Forge/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/Daksh-Shami/Quantum-Forge/actions/workflows/ci.yml)
 
-A high-performance Quantum compiler & simulation framework built in Rust, designed for efficient quantum circuit execution and analysis using intuitive UIs.
+A high-performance Quantum simulation & visualization framework built in Rust, designed for efficient quantum circuit execution and analysis using intuitive UIs.
 
-## Feature Set for first release
+## Feature Set for first release (in progress)
 
 - **Open source Compiler w/ OpenQASM 3.0 Support**: Full IR implementation for the latest OpenQASM standard
 - **JIT compiler**: Compiles code in real-time using cranelift, thus offering blazing fast iteration for researchers
 - **High-Performance Simulation**: Rust-based backend optimized for small-to-medium quantum circuits on any device
-- **Interactive Visualization**: Fully integrated with [Tauri](https://v2.tauri.app/), thus giving us framework to build tools like Circuit building and visualization capabilities (in development)
-- **Modular Architecture**: Designed for extensibility and future hardware integration
+- **Interactive Visualization**: Integrated with [Tauri](https://v2.tauri.app/), thus giving us framework to build tools like Circuit building and visualization capabilities.
+- **Modular Architecture**: Designed for extensibility and future hardware integration.
 
 ## Project Status
 
@@ -36,10 +37,30 @@ Current progress:
 
 #### Clone the repository
 ```bash
-git clone https://github.com/Daksh-Shami/quantum-forge.git && cd quantum-forge
+git clone https://github.com/Daksh-Shami/Quantum-Forge.git && cd Quantum-Forge
 ```
 
-#### Build the project
+#### Install Linux Dependencies (not required for Windows)
+
+If you're developing on Linux, you'll need to install additional system dependencies for Tauri:
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
+sudo apt-get install -y libgtk-3-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev webkit2gtk-4.1
+```
+
+**Fedora:**
+```bash
+sudo dnf install webkit2gtk3-devel gtk3-devel libsoup-devel
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S webkit2gtk gtk3 libsoup
+```
+
+### Build the project
 ```bash
 cargo build --release
 ```
@@ -47,12 +68,12 @@ cargo build --release
 > If your `cargo build` fails and you are on Windows, try running it again in **Developer PowerShell for VS Code 2022**.  
 > If you don't have it installed, please install **Visual Studio 2022** first.
 
-#### Run tests
+### Run tests
 ```bash
 cargo test
 ```
 
-#### (Advanced, optional) Run benchmarks (vs. previous run of QF-compiler)
+### (Advanced, optional) Run benchmarks (vs. previous run of QF-compiler)
 ```bash
 cargo bench
 ```

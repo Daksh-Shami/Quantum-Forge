@@ -53,6 +53,7 @@ where
     }
 }
 
+// It's more efficient to call norm_squared than norm. This is by design as Quantum operations usually use norm squared more often.
 impl<T> Complex<T>
 where
     T: Copy + Debug + Add<Output = T> + Mul<Output = T>,
