@@ -7,24 +7,29 @@
 
 A high-performance Quantum simulation & visualization framework built in Rust, designed for efficient quantum circuit execution and analysis using intuitive UIs.
 
-## Feature Set for first release (in progress)
+## Feature Set for First Release (Alpha)
 
-- **Open source Compiler w/ OpenQASM 3.0 Support**: Full IR implementation for the latest OpenQASM standard
-- **JIT compiler**: Compiles code in real-time using cranelift, thus offering blazing fast iteration for researchers
-- **High-Performance Simulation**: Rust-based backend optimized for small-to-medium quantum circuits on any device
-- **Interactive Visualization**: Integrated with [Tauri](https://v2.tauri.app/), thus giving us framework to build tools like Circuit building and visualization capabilities.
-- **Modular Architecture**: Designed for extensibility and future hardware integration.
+- **Compiler Core w/ OpenQASM 3.0 Support**: Complete parser and lexer with AST generation
+- **Planned: JIT Compiler**: Architecture ready for Cranelift-based real-time execution (coming soon)
+- **High-Performance CPU Simulation**: Rust backend for small-to-medium circuits
+- **Planned: Interactive UI with Tauri**: Tauri framework integration started, UI skeleton in progress
+- **Modular Architecture**: Built with extensibility in mind for future tooling and hardware backend support
 
 ## Project Status
 
-Quantum Forge is currently in alpha development. See our [project milestones](../../milestones) for the development roadmap.
+Quantum Forge is currently in **alpha development**. Core components like parsing, AST generation, and simulation backend are complete. Tauri-based UI and Cranelift-based JIT backend are in early stages.
 
-Current progress:
-- OpenQASM 3 Parsing & AST Processing: Complete
-- Basic CPU-based Simulation Backend: Complete
-- Intermediate Representation (IR) Implementation: In Progress
-- Interactive Circuit Builder: In Progress
-- Benchmarking Suite: In Progress
+See our [project milestones](../../milestones) for the development roadmap.
+
+### ✅ Completed
+- OpenQASM 3 Parsing & AST Processing
+- Basic CPU-based Simulation Backend
+
+### 🚧 In Progress
+- Intermediate Representation (IR) Development
+- Interactive Circuit Builder UI
+- Benchmarking Suite
+
 
 ## Getting Started
 
