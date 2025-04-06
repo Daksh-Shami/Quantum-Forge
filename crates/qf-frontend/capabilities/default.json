@@ -1,0 +1,6 @@
+{
+  "identifier": "shell:allow:open",
+  "description": "Allows opening URLs in the default browser",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

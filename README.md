@@ -36,7 +36,7 @@ Current progress:
 
 #### Clone the repository
 ```bash
-git clone https://github.com/Daksh-Shami/quantum-forge.git && cd quantum-forge
+git clone https://github.com/Daksh-Shami/Quantum-Forge.git && cd Quantum-Forge
 ```
 
 #### Build the project

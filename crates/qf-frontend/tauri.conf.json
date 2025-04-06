@@ -1,0 +1,33 @@
+{
+  "productName": "QF Frontend",
+  "version": "0.1.0",
+  "identifier": "com.qf.frontend.dev",
+  "build": {
+    "frontendDist": "./dist",
+    "beforeDevCommand": "",
+    "beforeBuildCommand": ""
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "label": "main",
+        "fullscreen": false,
+        "resizable": true,
+        "title": "QF Frontend",
+        "width": 800,
+        "height": 600
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "icon": [
+      "./icons/icon.ico"
+    ],
+    "targets": "all"
+  }
+}

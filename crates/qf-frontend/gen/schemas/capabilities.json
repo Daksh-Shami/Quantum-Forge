@@ -1,0 +1,1 @@
+{"shell:allow:open":{"identifier":"shell:allow:open","description":"Allows opening URLs in the default browser","local":true,"windows":["main"],"permissions":["core:default"]}}
