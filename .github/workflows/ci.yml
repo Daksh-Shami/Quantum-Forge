@@ -1,4 +1,4 @@
-name: Quantum Forge CI
+name: Qitara CI
 on:
   push:
     branches:
