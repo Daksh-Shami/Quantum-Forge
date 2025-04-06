@@ -42,7 +42,7 @@ See our [project milestones](../../milestones) for the development roadmap.
 
 #### Clone the repository
 ```bash
-git clone https://github.com/Daksh-Shami/Quantum-Forge.git && cd Quantum-Forge
+git clone https://github.com/Daksh-Shami/Qitara.git && cd Qitara
 ```
 
 #### Install Linux Dependencies (not required for Windows)
