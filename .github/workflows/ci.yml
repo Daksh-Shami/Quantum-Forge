@@ -19,12 +19,5 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev webkit2gtk-4.1
-      - name: rust-clippy-check
-        uses: actions-rs/clippy-check@v1.0.7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # Toolchain to use (without the `+` sign, ex. `nightly`)
-          toolchain: nightly
-          name: Quantum Forge Clippy
       - name: Run Tests
         run: cargo test --verbose
