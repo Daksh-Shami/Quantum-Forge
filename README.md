@@ -2,7 +2,7 @@
 
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)
 ![Status](https://img.shields.io/badge/Status-Alpha-orange.svg)
-![Rust](https://img.shields.io/badge/Rust-1.71+-orange.svg)
+![Rust](https://img.shields.io/badge/Rust-Nightly-orange.svg)
 [![Quantum Forge CI](https://github.com/Daksh-Shami/Quantum-Forge/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/Daksh-Shami/Quantum-Forge/actions/workflows/ci.yml)
 
 A high-performance Quantum simulation & visualization framework built in Rust, designed for efficient quantum circuit execution and analysis using intuitive UIs.
