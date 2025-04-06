@@ -39,7 +39,27 @@ Current progress:
 git clone https://github.com/Daksh-Shami/Quantum-Forge.git && cd Quantum-Forge
 ```
 
-#### Build the project
+#### Install Linux Dependencies (not required for Windows)
+
+If you're developing on Linux, you'll need to install additional system dependencies for Tauri:
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
+sudo apt-get install -y libgtk-3-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev webkit2gtk-4.1
+```
+
+**Fedora:**
+```bash
+sudo dnf install webkit2gtk3-devel gtk3-devel libsoup-devel
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S webkit2gtk gtk3 libsoup
+```
+
+### Build the project
 ```bash
 cargo build --release
 ```
@@ -47,12 +67,12 @@ cargo build --release
 > If your `cargo build` fails and you are on Windows, try running it again in **Developer PowerShell for VS Code 2022**.  
 > If you don't have it installed, please install **Visual Studio 2022** first.
 
-#### Run tests
+### Run tests
 ```bash
 cargo test
 ```
 
-#### (Advanced, optional) Run benchmarks (vs. previous run of QF-compiler)
+### (Advanced, optional) Run benchmarks (vs. previous run of QF-compiler)
 ```bash
 cargo bench
 ```
