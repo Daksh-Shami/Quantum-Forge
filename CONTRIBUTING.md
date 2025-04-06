@@ -81,7 +81,7 @@ We follow a standard GitHub flow for contributions. All development happens on t
 
 ## Asking Questions
 
-If you have any questions about contributing, the project structure, or run into problems, please don't hesitate to ask! You can reach out via email [here](quantum.dakshami@gmail.com) or if you just have code related bugs, create an issue in the [Issues tab](../../issues).
+If you have any questions about contributing, the project structure, or run into problems, please don't hesitate to ask! You can reach out via email to quantum.dakshami@gmail.com or if you just have code related bugs, create an issue in the [Issues tab](../../issues).
 
 ## Code of Conduct
 
