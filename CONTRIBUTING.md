@@ -1,10 +1,10 @@
-# Contributing to Quantum Forge
+# Contributing to Qitara
 
-First off, thank you for considering contributing to Quantum Forge! Your help is greatly appreciated. Please take a moment to review these guidelines.
+First off, thank you for considering contributing to Qitara! Your help is greatly appreciated. Please take a moment to review these guidelines.
 
 ## Project Structure
 
-Quantum Forge is organized into multiple crates within a Rust workspace:
+Qitara is organized into multiple crates within a Rust workspace:
 
 - **Frontend Development**: If you're interested in contributing to the GUI frontend, please refer to the documentation in the [`crates/qf-frontend`](crates/qf-frontend/README.md) directory. The frontend is built using Tauri v2 and **any** web technology. Yes this means you can use React, Vue, Angular, Svelte, or any other framework you prefer and it will seamlessly integrate into one app using Tauri. So feel free to use anything you like and we can handle the rest, provided your changes are valuable additions as this adds significant complexity to the codebase.
 
@@ -20,17 +20,17 @@ Quantum Forge is organized into multiple crates within a Rust workspace:
 
 We follow a standard GitHub flow for contributions. All development happens on the `dev` branch. **Please do not commit directly to `main` or `ready-for-release`**.
 
-1.  **Fork the Repository**: Click the "Fork" button at the top right of the [main repository page](https://github.com/Daksh-Shami/Quantum-Forge). This creates your own copy of the project.
+1.  **Fork the Repository**: Click the "Fork" button at the top right of the [main repository page](https://github.com/Daksh-Shami/Qitara). This creates your own copy of the project.
 
 2.  **Clone Your Fork**:
     ```bash
-    git clone https://github.com/Daksh-Shami/Quantum-Forge.git
-    cd Quantum-Forge
+    git clone https://github.com/Daksh-Shami/Qitara.git
+    cd Qitara
     ```
 
 3.  **Set Up Remote**: Add the original repository as the `upstream` remote.
     ```bash
-    git remote add upstream https://github.com/Daksh-Shami/Quantum-Forge.git
+    git remote add upstream https://github.com/Daksh-Shami/Qitara.git
     ```
 
 4.  **Create a Branch**: Always create a new branch for your changes, starting from the latest `dev` branch. Choose a descriptive branch name (e.g., `feature/add-new-gate` or `fix/parser-bug`).
@@ -68,7 +68,7 @@ We follow a standard GitHub flow for contributions. All development happens on t
 9.  **Open a Pull Request (PR)**:
     *   Go to your fork on GitHub.
     *   Click the "Compare & pull request" button for your branch.
-    *   Ensure the base repository is `Daksh-Shami/Quantum-Forge` and the base branch is `dev`.
+    *   Ensure the base repository is `Daksh-Shami/Qitara` and the base branch is `dev`.
     *   Provide a clear title and description for your PR, explaining the changes and referencing any relevant issues (e.g., "Closes #123").
     *   **Crucially, add [`Daksh-Shami`](https://github.com/Daksh-Shami) as a reviewer** to your Pull Request. At a later date, we will relax this requirement to include more core contributors as reviewers.
 
