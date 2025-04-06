@@ -28,11 +28,6 @@ perf.data*
 flamegraph.svg
 dhat-heap.json
 
-# Generated files
-*.qasm
-benchmark_results.html
-benchmark_results.png
-
 # Dependencies
 node_modules/
 
