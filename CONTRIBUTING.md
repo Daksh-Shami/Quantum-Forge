@@ -57,7 +57,7 @@ We follow a standard GitHub flow for contributions. All development happens on t
     ```bash
     git fetch upstream
     git rebase upstream/dev
-    # Or use 'git merge upstream/dev' if you prefer, then resolve conflicts if any
+    # Or use `git merge upstream/dev` if you prefer, then resolve conflicts if any
     ```
 
 8.  **Push Changes**: Push your branch to your fork.
@@ -70,7 +70,7 @@ We follow a standard GitHub flow for contributions. All development happens on t
     *   Click the "Compare & pull request" button for your branch.
     *   Ensure the base repository is `Daksh-Shami/Quantum-Forge` and the base branch is `dev`.
     *   Provide a clear title and description for your PR, explaining the changes and referencing any relevant issues (e.g., "Closes #123").
-    *   **Crucially, add `Daksh-Shami` as a reviewer** to your Pull Request.
+    *   **Crucially, add `Daksh-Shami` as a reviewer** to your Pull Request. At a later date, we will relax this requirement to include more core contributors as reviewers.
 
 ## Working with Issues
 
