@@ -23,46 +23,6 @@ This crate is part of the QF Compiler workspace. The frontend uses Tauri v2 to c
 - Rust toolchain
 - Tauri CLI: `cargo install tauri-cli`
 
-#### Linux Dependencies
-
-If you're developing on Linux, you'll need to install additional system dependencies for Tauri:
-
-**Ubuntu/Debian:**
-```bash
-sudo apt update
-sudo apt install libwebkit2gtk-4.0-dev \
-    build-essential \
-    curl \
-    wget \
-    libssl-dev \
-    libgtk-3-dev \
-    libayatana-appindicator3-dev \
-    librsvg2-dev
-```
-
-**Fedora:**
-```bash
-sudo dnf install webkit2gtk3-devel \
-    openssl-devel \
-    curl \
-    wget \
-    libappindicator-gtk3-devel \
-    librsvg2-devel \
-    gtk3-devel
-```
-
-**Arch Linux:**
-```bash
-sudo pacman -S webkit2gtk \
-    base-devel \
-    curl \
-    wget \
-    openssl \
-    gtk3 \
-    libappindicator-gtk3 \
-    librsvg
-```
-
 ### Development
 
 To run the development server:

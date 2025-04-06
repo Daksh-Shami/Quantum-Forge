@@ -6,7 +6,7 @@ use qf_parser::parse_qasm_file;
 fn test_all_qasm_files() {
     let pattern = concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../../examples/QASM_files/*.qasm"
+        "/QASM_files/*.qasm"
     );
 
     // Find all .qasm files in the directory
