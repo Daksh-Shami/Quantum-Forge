@@ -42,7 +42,8 @@ See our [project milestones](../../milestones) for the development roadmap.
 
 #### Clone the repository
 ```bash
-git clone https://github.com/Daksh-Shami/Qitara.git && cd Qitara
+git clone https://github.com/Daksh-Shami/Qitara.git
+cd Qitara
 ```
 
 #### Install Linux Dependencies (not required for Windows)
