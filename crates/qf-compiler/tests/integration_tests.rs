@@ -417,7 +417,7 @@ mod tests {
             .iter()
             .zip(state.amplitudes.iter())
             .for_each(|(a, b)| {
-                assert!((a.clone() - b.clone()).norm() < 1e-10);
+                assert!((*a - *b).norm() < 1e-10);
             });
     }
 
@@ -435,7 +435,7 @@ mod tests {
         let bits = measured_state[0].as_bitvec();
         // Due to superposition, bits can be either both 0 or both 1
         assert!(
-            (bits[0] == false && bits[1] == false) || (bits[0] == true && bits[1] == true),
+            (!bits[0] && !bits[1]) || (bits[0] && bits[1]),
             "Expected both bits to be equal, got {:?}",
             bits
         );
@@ -619,7 +619,7 @@ mod tests {
             .iter()
             .zip(state.amplitudes.iter())
         {
-            assert!((a.clone() - b.clone()).norm() < 1e-10);
+            assert!((*a - *b).norm() < 1e-10);
         }
     }
 }

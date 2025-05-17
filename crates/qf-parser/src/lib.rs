@@ -13,6 +13,7 @@ pub enum QasmError {
 }
 
 /// A structure that holds the QASM file content along with its lexed representation.
+///
 /// Instead of `Arc<str>`, we store `content` inline and use a raw pointer (`*const LexedStr`) for lexed.
 /// This avoids reference counting and maintains efficiency.
 pub struct OwnedLexed {
@@ -22,6 +23,9 @@ pub struct OwnedLexed {
 
 impl OwnedLexed {
     /// Reads a QASM file from `file_path` and produces an `OwnedLexed`.
+    ///
+    /// # Errors
+    /// Returns a `QasmError` if the file cannot be read or if the file path is invalid.
     pub fn from_file<P: AsRef<Path>>(file_path: P) -> Result<Self, QasmError> {
         let content = fs::read_to_string(file_path)?;
 
@@ -40,6 +44,11 @@ impl OwnedLexed {
 ///
 /// # Returns
 /// * `Result<Output, QasmError>` - The parsed AST output, or an error.
+/// 
+/// # Errors
+/// Returns a `QasmError` if:
+/// * The file cannot be read
+/// * The file content is not valid QASM syntax
 pub fn parse_qasm_file<P: AsRef<Path>>(file_path: P) -> Result<Output, QasmError> {
     let owned = OwnedLexed::from_file(file_path)?;
     let input = owned.lexed.to_input();

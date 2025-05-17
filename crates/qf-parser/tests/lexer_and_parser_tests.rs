@@ -28,10 +28,7 @@ fn test_all_qasm_files() {
 
                 // Print only parser steps that include errors
                 for step in parsed.iter() {
-                    match step {
-                        Step::Error { msg } => println!("  Error: {}", msg),
-                        _ => (),
-                    }
+                    if let Step::Error { msg } = step { println!("  Error: {}", msg) }
                 }
 
                 // Collect any error messages from the parser output

@@ -8,15 +8,15 @@ pub struct AlgorithmRunner<A: Algorithm> {
 }
 
 impl<A: Algorithm> AlgorithmRunner<A> {
-    pub fn new(algorithm: A) -> Self {
-        AlgorithmRunner {
+    pub const fn new(algorithm: A) -> Self {
+        Self {
             algorithm,
             circuit: None,
             current_state: None,
         }
     }
 
-    pub fn circuit(&self) -> Option<&QuantumCircuit> {
+    pub const fn circuit(&self) -> Option<&QuantumCircuit> {
         self.circuit.as_ref()
     }
 
@@ -45,18 +45,10 @@ impl<A: Algorithm> AlgorithmRunner<A> {
     }
 
     pub fn measure(&self, qubit: usize) -> Result<bool, String> {
-        match &self.circuit {
-            Some(circuit) => self.algorithm.measure(circuit, qubit),
-            None => {
-                Err("No quantum circuit available. Did you run the algorithm first?".to_string())
-            }
-        }
+        self.circuit.as_ref().map_or_else(|| Err("No quantum circuit available. Did you run the algorithm first?".to_string()), |circuit| self.algorithm.measure(circuit, qubit))
     }
 
     pub fn measure_all(&self, measurement_order: &[usize]) -> Result<MeasurementResult, String> {
-        match &self.circuit {
-            Some(circuit) => circuit.measureall(measurement_order),
-            None => Err("No circuit available to measure".to_string()),
-        }
+        self.circuit.as_ref().map_or_else(|| Err("No circuit available to measure".to_string()), |circuit| circuit.measureall(measurement_order))
     }
 }

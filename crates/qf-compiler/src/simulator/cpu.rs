@@ -9,6 +9,8 @@ pub struct CPUSimulator {
     num_qubits: usize,
 }
 
+static ERR_OUT_OF_RANGE: &str = "Qubit indices out of range";
+
 impl CPUSimulator {
     pub fn new(num_qubits: usize) -> Self {
         let size = 1 << num_qubits;
@@ -22,9 +24,9 @@ impl CPUSimulator {
         }
     }
 
-    pub fn from_state(state_vector: Vec<Complex>, num_qubits: usize) -> Self {
+    pub fn from_state(state_vector: &[Complex], num_qubits: usize) -> Self {
         let mut aligned_vec = AVec::new(32);
-        aligned_vec.extend_from_slice(&state_vector);
+        aligned_vec.extend_from_slice(state_vector);
 
         Self {
             state_vector: aligned_vec,
@@ -34,7 +36,7 @@ impl CPUSimulator {
 
     fn apply_hadamard(&mut self, qubit: usize) -> Result<(), String> {
         if qubit >= self.num_qubits {
-            return Err(format!("Qubit index {} out of range", qubit));
+            return Err(format!("Qubit index {qubit} out of range"));
         }
 
         let factor = Complex::new(1.0 / 2.0_f64.sqrt(), 0.0);
@@ -61,7 +63,7 @@ impl CPUSimulator {
 
     fn apply_rx(&mut self, qubit: usize, angle: f64) -> Result<(), String> {
         if qubit >= self.num_qubits {
-            return Err(format!("Qubit index {} out of range", qubit));
+            return Err(format!("Qubit index {qubit} out of range"));
         }
 
         let theta = angle / 2.0;
@@ -80,12 +82,12 @@ impl CPUSimulator {
                     // RX(θ) = [cos(θ/2)    -i*sin(θ/2)]
                     //         [-i*sin(θ/2)   cos(θ/2)  ]
                     self.state_vector[i] = Complex::new(
-                        v1.re * cos_theta - v2.im * sin_theta,
-                        v1.im * cos_theta + v2.re * sin_theta,
+                        v1.re.mul_add(cos_theta, -(v2.im * sin_theta)),
+                        v1.im.mul_add(cos_theta, v2.re * sin_theta),
                     );
                     self.state_vector[i2] = Complex::new(
-                        v2.re * cos_theta - v1.im * sin_theta,
-                        v2.im * cos_theta + v1.re * sin_theta,
+                        v2.re.mul_add(cos_theta, -(v1.im * sin_theta)),
+                        v2.im.mul_add(cos_theta, v1.re * sin_theta),
                     );
                 }
             }
@@ -95,7 +97,7 @@ impl CPUSimulator {
 
     fn apply_rz(&mut self, qubit: usize, angle: f64) -> Result<(), String> {
         if qubit >= self.num_qubits {
-            return Err(format!("Qubit index {} out of range", qubit));
+            return Err(format!("Qubit index {qubit} out of range"));
         }
 
         let theta = angle / 2.0;
@@ -111,7 +113,7 @@ impl CPUSimulator {
 
     fn apply_cnot(&mut self, control: usize, target: usize) -> Result<(), String> {
         if control >= self.num_qubits || target >= self.num_qubits {
-            return Err(format!("Qubit indices out of range"));
+            return Err(ERR_OUT_OF_RANGE.to_string());
         }
 
         // Only process indices where control bit is 1 and haven't been processed yet
@@ -126,7 +128,7 @@ impl CPUSimulator {
 
     fn apply_x(&mut self, qubit: usize) -> Result<(), String> {
         if qubit >= self.num_qubits {
-            return Err(format!("Qubit index {} out of range", qubit));
+            return Err(format!("Qubit index {qubit} out of range"));
         }
 
         for i in 0..self.state_vector.len() {
@@ -140,11 +142,11 @@ impl CPUSimulator {
 
     fn apply_cz(&mut self, control: usize, target: usize) -> Result<(), String> {
         if control >= self.num_qubits || target >= self.num_qubits {
-            return Err(format!("Qubit indices out of range"));
+            return Err(ERR_OUT_OF_RANGE.to_string());
         }
 
         for i in 0..self.state_vector.len() {
-            if (i & (1 << control) != 0) && (i & (1 << target) != 0) {
+            if i & (1 << control) != 0 && i & (1 << target) != 0 {
                 self.state_vector[i] = -self.state_vector[i];
             }
         }
@@ -158,7 +160,7 @@ impl CPUSimulator {
         target: usize,
     ) -> Result<(), String> {
         if control1 >= self.num_qubits || control2 >= self.num_qubits || target >= self.num_qubits {
-            return Err(format!("Qubit indices out of range"));
+            return Err(ERR_OUT_OF_RANGE.to_string());
         }
 
         for i in 0..self.state_vector.len() {
@@ -172,7 +174,7 @@ impl CPUSimulator {
 
     fn apply_swap(&mut self, qubit1: usize, qubit2: usize) -> Result<(), String> {
         if qubit1 >= self.num_qubits || qubit2 >= self.num_qubits {
-            return Err(format!("Qubit indices out of range"));
+            return Err(ERR_OUT_OF_RANGE.to_string());
         }
 
         for i in 0..self.state_vector.len() {
@@ -186,7 +188,7 @@ impl CPUSimulator {
 
     fn apply_phase(&mut self, qubit: usize) -> Result<(), String> {
         if qubit >= self.num_qubits {
-            return Err(format!("Qubit index {} out of range", qubit));
+            return Err(format!("Qubit index {qubit} out of range"));
         }
 
         let phase = Complex::new(0.0, 1.0);
