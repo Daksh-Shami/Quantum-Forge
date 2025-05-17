@@ -37,7 +37,7 @@ impl<'de> Deserialize<'de> for Complex<f64> {
         }
 
         let helper = ComplexHelper::deserialize(deserializer)?;
-        Ok(Complex {
+        Ok(Self {
             re: helper.re,
             im: helper.im,
         })
@@ -48,7 +48,7 @@ impl<T> Complex<T>
 where
     T: Copy + Debug,
 {
-    pub fn new(re: T, im: T) -> Self {
+    pub const fn new(re: T, im: T) -> Self {
         Self { re, im }
     }
 }

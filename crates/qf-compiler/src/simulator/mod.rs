@@ -72,16 +72,11 @@
 
 use crate::{Complex, MeasurementResult, QuantumGate, QuantumState};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub enum SimulatorType {
+    #[default]
     CPU,
     // GPU, // Uncomment when implementing GPU simulator
-}
-
-impl Default for SimulatorType {
-    fn default() -> Self {
-        SimulatorType::CPU
-    }
 }
 
 /// Trait defining the interface for quantum simulation backends
@@ -108,7 +103,7 @@ pub use cpu::CPUSimulator;
 // Implement From trait for CPUSimulator
 impl From<(&[Complex], usize)> for CPUSimulator {
     fn from((amplitudes, num_qubits): (&[Complex], usize)) -> Self {
-        CPUSimulator::from_state(amplitudes.to_vec(), num_qubits)
+        Self::from_state(amplitudes, num_qubits)
     }
 }
 
@@ -127,7 +122,7 @@ pub fn create_simulator_from_state(
     num_qubits: usize,
 ) -> Box<dyn QuantumSimulator> {
     match sim_type {
-        SimulatorType::CPU => Box::new(CPUSimulator::from_state(amplitudes.to_vec(), num_qubits)),
+        SimulatorType::CPU => Box::new(CPUSimulator::from_state(amplitudes, num_qubits)),
         // SimulatorType::GPU => Box::new(GPUSimulator::from_state(amplitudes, num_qubits)),
     }
 }

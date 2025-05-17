@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 use statrs::distribution::{ChiSquared, ContinuousCDF};
 use std::collections::HashMap;
 use std::f64::consts::PI;
-use std::f64::EPSILON;
 use std::fmt;
+use std::fmt::Write;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -28,7 +28,6 @@ pub mod simulator;
 use simulator::QuantumSimulator;
 
 // Optimized bit operations
-#[inline(always)]
 const fn bit_mask(qubit: usize) -> usize {
     1 << qubit
 }
@@ -39,8 +38,8 @@ pub struct GroupElement {
 }
 
 impl GroupElement {
-    pub fn new(symbol: String) -> Self {
-        GroupElement { symbol }
+    pub const fn new(symbol: String) -> Self {
+        Self { symbol }
     }
 }
 
@@ -67,21 +66,15 @@ pub enum QuantumGate {
 impl PartialEq for QuantumGate {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (QuantumGate::Hadamard(q1), QuantumGate::Hadamard(q2)) => q1 == q2,
-            (QuantumGate::Phase(q1), QuantumGate::Phase(q2)) => q1 == q2,
-            (QuantumGate::CNOT(c1, t1), QuantumGate::CNOT(c2, t2)) => c1 == c2 && t1 == t2,
-            (QuantumGate::Toffoli(c1, c2, t1), QuantumGate::Toffoli(c3, c4, t2)) => {
+            (Self::Hadamard(q1), Self::Hadamard(q2)) | (Self::Phase(q1), Self::Phase(q2)) | (Self::X(q1), Self::X(q2)) => q1 == q2,
+            (Self::CNOT(c1, t1), Self::CNOT(c2, t2)) | (Self::CZ(c1, t1), Self::CZ(c2, t2)) => c1 == c2 && t1 == t2,
+            (Self::Toffoli(c1, c2, t1), Self::Toffoli(c3, c4, t2)) => {
                 c1 == c3 && c2 == c4 && t1 == t2
             }
-            (QuantumGate::Swap(q1, q2), QuantumGate::Swap(q3, q4)) => q1 == q3 && q2 == q4,
-            (QuantumGate::X(q1), QuantumGate::X(q2)) => q1 == q2,
-            (QuantumGate::RZ(q1, angle1), QuantumGate::RZ(q2, angle2)) => {
-                q1 == q2 && (angle1 - angle2).abs() < EPSILON // Approximate equality for RZ
+            (Self::Swap(q1, q2), Self::Swap(q3, q4)) => q1 == q3 && q2 == q4,
+            (Self::RZ(q1, angle1), Self::RZ(q2, angle2)) | (Self::RX(q1, angle1), Self::RX(q2, angle2)) => {
+                q1 == q2 && (angle1 - angle2).abs() < f64::EPSILON // Approximate equality for rotation gates
             }
-            (QuantumGate::RX(q1, angle1), QuantumGate::RX(q2, angle2)) => {
-                q1 == q2 && (angle1 - angle2).abs() < EPSILON
-            }
-            (QuantumGate::CZ(c1, t1), QuantumGate::CZ(c2, t2)) => c1 == c2 && t1 == t2,
             _ => false,
         }
     }
@@ -90,17 +83,17 @@ impl PartialEq for QuantumGate {
 impl Eq for QuantumGate {}
 
 impl QuantumGate {
-    pub fn to_qasm(&self) -> String {
+    #[must_use] pub fn to_qasm(&self) -> String {
         match self {
-            QuantumGate::Hadamard(q) => format!("h q[{}];", q),
-            QuantumGate::Phase(q) => format!("s q[{}];", q),
-            QuantumGate::CNOT(c, t) => format!("cx q[{}],q[{}];", c, t),
-            QuantumGate::Toffoli(c1, c2, t) => format!("ccx q[{}],q[{}],q[{}];", c1, c2, t),
-            QuantumGate::X(q) => format!("x q[{}];", q),
-            QuantumGate::RZ(q, angle) => format!("rz({}) q[{}];", angle, q),
-            QuantumGate::RX(q, angle) => format!("rx({}) q[{}];", angle, q),
-            QuantumGate::CZ(c, t) => format!("cz q[{}],q[{}];", c, t),
-            QuantumGate::Swap(q1, q2) => format!("swap q[{}],q[{}];", q1, q2),
+            Self::Hadamard(q) => format!("h q[{q}];"),
+            Self::Phase(q) => format!("s q[{q}];"),
+            Self::CNOT(c, t) => format!("cx q[{c}],q[{t}];"),
+            Self::Toffoli(c1, c2, t) => format!("ccx q[{c1}],q[{c2}],q[{t}];"),
+            Self::X(q) => format!("x q[{q}];"),
+            Self::RZ(q, angle) => format!("rz({angle}) q[{q}];"),
+            Self::RX(q, angle) => format!("rx({angle}) q[{q}];"),
+            Self::CZ(c, t) => format!("cz q[{c}],q[{t}];"),
+            Self::Swap(q1, q2) => format!("swap q[{q1}],q[{q2}];"),
         }
     }
 }
@@ -109,8 +102,8 @@ impl QuantumGate {
 pub struct MeasurementResults(pub Vec<MeasurementResult>);
 
 impl MeasurementResults {
-    pub fn new(results: Vec<MeasurementResult>) -> Self {
-        MeasurementResults(results)
+    #[must_use] pub const fn new(results: Vec<MeasurementResult>) -> Self {
+        Self(results)
     }
 
     pub fn count_outcomes(&self) -> HashMap<String, usize> {
@@ -204,7 +197,7 @@ impl MeasurementResults {
         };
 
         let mut analysis = String::new();
-        analysis.push_str("Analysis:\n");
+        writeln!(analysis, "Analysis:").unwrap();
 
         // Pattern recognition section
         if is_power_of_two && state_size > 0 {
@@ -215,24 +208,18 @@ impl MeasurementResults {
                     && (sorted[0].0 == "00" && sorted[1].0 == "11")
                     && (sorted[0].1 - sorted[1].1).abs() < 5.0
                 {
-                    analysis.push_str("Pattern detected: Bell state (|00⟩ + |11⟩)/√2\n");
+                    writeln!(analysis, "Pattern detected: Bell state (|00⟩ + |11⟩)/√2").unwrap();
                 }
             }
 
             // Check for uniform superposition (possibly from Hadamard or QFT)
             if entropy_ratio > 0.98 && is_uniform {
                 if state_size == 1 {
-                    analysis.push_str(
-                        "Pattern detected: Single qubit in equal superposition (|0⟩ + |1⟩)/√2\n",
-                    );
+                    writeln!(analysis, "Pattern detected: Single qubit in equal superposition (|0⟩ + |1⟩)/√2").unwrap();
                 } else {
-                    analysis.push_str(&format!(
-                        "Pattern detected: Uniform superposition across {} qubits\n",
-                        state_size
-                    ));
+                    writeln!(analysis, "Pattern detected: Uniform superposition across {state_size} qubits").unwrap();
                     if outcomes.len() == (1 << state_size) {
-                        analysis
-                            .push_str("This may be the result of a Hadamard transform or QFT\n");
+                        writeln!(analysis, "This may be the result of a Hadamard transform or QFT").unwrap();
                     }
                 }
             }
@@ -243,10 +230,7 @@ impl MeasurementResults {
                 .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
                 .unwrap();
             if max_outcome.1 > 90.0 {
-                analysis.push_str(&format!(
-                    "Pattern detected: System predominantly in computational basis state |{}⟩\n",
-                    max_outcome.0
-                ));
+                writeln!(analysis, "Pattern detected: System predominantly in computational basis state |{}⟩", max_outcome.0).unwrap();
             }
         }
 
@@ -254,64 +238,44 @@ impl MeasurementResults {
         let sorted_outcomes = Self::sort_outcomes(&outcomes);
 
         if outcome_count == 2 && (sorted_outcomes[0].1 - sorted_outcomes[1].1).abs() < 5.0 {
-            analysis.push_str("The outcomes are nearly equally distributed, suggesting a balanced quantum state.\n");
+            writeln!(analysis, "The outcomes are nearly equally distributed, suggesting a balanced quantum state.").unwrap();
         } else if outcome_count == 2 {
-            analysis.push_str(&format!(
-                "The outcomes show a bias towards '{}' ({:.1}%), indicating a non-uniform quantum state.\n",
-                sorted_outcomes[0].0, sorted_outcomes[0].1
-            ));
+            writeln!(analysis, "The outcomes show a bias towards '{}' ({:.1}%), indicating a non-uniform quantum state.", sorted_outcomes[0].0, sorted_outcomes[0].1).unwrap();
         } else if outcome_count > 2 {
             // For multi-outcome distributions, analyze clustering
             if entropy_ratio > 0.95 {
-                analysis.push_str(&format!(
-                    "All {} possible outcomes appear with similar probabilities.\n",
-                    outcome_count
-                ));
+                writeln!(analysis, "All {outcome_count} possible outcomes appear with similar probabilities.").unwrap();
             } else {
                 // Identify the top 3 outcomes
                 let top_outcomes: Vec<_> = sorted_outcomes.iter().take(3).collect();
                 let top_sum: f64 = top_outcomes.iter().map(|(_, p)| p).sum();
 
                 if top_sum > 80.0 {
-                    analysis.push_str(&format!(
-                        "The distribution is concentrated in {} primary outcomes ({}), comprising {:.1}% of measurements.\n",
-                        top_outcomes.len(),
-                        top_outcomes.iter().map(|(s, _)| s.to_string()).collect::<Vec<_>>().join(", "),
-                        top_sum
-                    ));
+                    writeln!(analysis, "The distribution is concentrated in {} primary outcomes ({}), comprising {:.1}% of measurements.", top_outcomes.len(), top_outcomes.iter().map(|(s, _)| s.to_string()).collect::<Vec<_>>().join(", "), top_sum).unwrap();
                 }
             }
         }
 
         // Entropy analysis (enhanced)
         if entropy_ratio > 0.95 {
-            analysis.push_str(&format!(
-                "The high entropy ratio ({:.1}%) suggests maximal quantum superposition.\n",
+            writeln!(analysis, "The high entropy ratio ({:.1}%) suggests maximal quantum superposition.",
                 entropy_ratio * 100.0
-            ));
+            ).unwrap();
         } else if entropy_ratio > 0.7 {
-            analysis.push_str(&format!(
-                "The moderate entropy ratio ({:.1}%) indicates partial quantum superposition.\n",
+            writeln!(analysis, "The moderate entropy ratio ({:.1}%) indicates partial quantum superposition.",
                 entropy_ratio * 100.0
-            ));
+            ).unwrap();
         } else {
-            analysis.push_str(&format!(
-                "The low entropy ratio ({:.1}%) suggests the state is approaching a classical state.\n", 
+            writeln!(analysis, "The low entropy ratio ({:.1}%) suggests the state is approaching a classical state.", 
                 entropy_ratio * 100.0
-            ));
+            ).unwrap();
         }
 
         // Uniformity test interpretation (improved wording)
         if is_uniform {
-            analysis.push_str(&format!(
-                "The χ² test ({:.3} < {:.3}) confirms the distribution is uniform at 95% confidence.\n",
-                chi_squared, threshold
-            ));
+            writeln!(analysis, "The χ² test ({chi_squared:.3} < {threshold:.3}) confirms the distribution is uniform at 95% confidence.").unwrap();
         } else {
-            analysis.push_str(&format!(
-                "The χ² test ({:.3} > {:.3}) indicates non-uniform distribution at 95% confidence.\n",
-                chi_squared, threshold
-            ));
+            writeln!(analysis, "The χ² test ({chi_squared:.3} > {threshold:.3}) indicates non-uniform distribution at 95% confidence.").unwrap();
         }
 
         analysis
@@ -408,7 +372,7 @@ impl fmt::Display for MeasurementResults {
             table.add_row(vec![line]);
         }
 
-        write!(f, "{}", table)
+        write!(f, "{table}")
     }
 }
 
@@ -430,7 +394,7 @@ impl QuantumCircuit {
         }
     }
 
-    pub fn with_simulator_type(qubit_count: usize, sim_type: SimulatorType) -> Self {
+    pub const fn with_simulator_type(qubit_count: usize, sim_type: SimulatorType) -> Self {
         Self {
             gates: Vec::new(),
             qubit_count,
@@ -443,7 +407,11 @@ impl QuantumCircuit {
         let instructions = parse_qasm(input)?;
         let mut circuit = None;
         let mut measurement_order = Vec::new();
+        // These are for tracking qubit and classical register names. They are not used right now as we don't need named registers in CPU/GPU simulators,
+        // but they can be useful for debugging at gate-specific level if needed.
+        #[allow(clippy::collection_is_never_read)]  
         let mut qreg_map: HashMap<String, usize> = HashMap::new();
+        #[allow(clippy::collection_is_never_read)]
         let mut creg_map: HashMap<String, usize> = HashMap::new();
 
         for instruction in instructions {
@@ -533,25 +501,26 @@ impl QuantumCircuit {
         self.classical_registers.get(index)
     }
 
+    #[allow(clippy::missing_const_for_fn)]
     pub fn gates(&self) -> &[QuantumGate] {
         &self.gates
     }
 
-    pub fn qubit_count(&self) -> usize {
+    pub const fn qubit_count(&self) -> usize {
         self.qubit_count
     }
 
     pub fn compose(&self) -> String {
         let mut result = String::new();
-        result.push_str(&format!("OPENQASM 2.0;\ninclude \"qelib1.inc\";\n\n"));
-        result.push_str(&format!("qreg q[{}];\n", self.qubit_count));
+        writeln!(result, "OPENQASM 2.0;\ninclude \"qelib1.inc\";\n").unwrap();
+        writeln!(result, "qreg q[{}];", self.qubit_count).unwrap();
 
         for (i, _) in self.classical_registers.iter().enumerate() {
-            result.push_str(&format!("creg c{}[{}];\n", i, self.qubit_count));
+            writeln!(result, "creg c{}[{}];", i, self.qubit_count).unwrap();
         }
 
         for gate in &self.gates {
-            result.push_str(&format!("{}\n", gate.to_qasm()));
+            writeln!(result, "{}\n", gate.to_qasm()).unwrap();
         }
 
         result
@@ -627,7 +596,7 @@ impl QuantumState {
     pub fn new(qubit_count: usize) -> Self {
         let mut amplitudes = vec![Complex::new(0.0, 0.0); 1 << qubit_count];
         amplitudes[0] = Complex::new(1.0, 0.0);
-        QuantumState {
+        Self {
             amplitudes,
             qubit_count,
         }
@@ -746,8 +715,8 @@ impl QuantumState {
 pub struct MeasurementResult(BitVec);
 
 impl MeasurementResult {
-    pub fn new(bv: BitVec) -> Self {
-        MeasurementResult(bv)
+    pub const fn new(bv: BitVec) -> Self {
+        Self(bv)
     }
 
     pub fn get(&self, index: usize) -> bool {
@@ -758,7 +727,11 @@ impl MeasurementResult {
         self.0.len()
     }
 
-    pub fn as_bitvec(&self) -> &BitVec {
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub const fn as_bitvec(&self) -> &BitVec {
         &self.0
     }
 }
@@ -805,7 +778,7 @@ impl PartialEq for MeasurementResult {
 
 impl Eq for MeasurementResult {}
 
-pub fn hadamard(qubit: usize) -> QuantumGate {
+pub const fn hadamard(qubit: usize) -> QuantumGate {
     QuantumGate::Hadamard(qubit)
 }
 
@@ -821,15 +794,15 @@ pub const fn toffoli(control1: usize, control2: usize, target: usize) -> Quantum
     QuantumGate::Toffoli(control1, control2, target)
 }
 
-pub fn x(qubit: usize) -> QuantumGate {
+pub const fn x(qubit: usize) -> QuantumGate {
     QuantumGate::X(qubit)
 }
 
-pub fn rz(qubit: usize, angle: f64) -> QuantumGate {
+pub const fn rz(qubit: usize, angle: f64) -> QuantumGate {
     QuantumGate::RZ(qubit, angle)
 }
 
-pub fn rx(qubit: usize, angle: f64) -> QuantumGate {
+pub const fn rx(qubit: usize, angle: f64) -> QuantumGate {
     QuantumGate::RX(qubit, angle)
 }
 
@@ -863,11 +836,11 @@ fn parse_angle(angle_str: &str) -> Result<f64, String> {
     let angle_str = angle_str.trim();
 
     // Handle negative pi cases first
-    if angle_str.starts_with("-pi/") {
-        return angle_str[4..]
+    if let Some(stripped) = angle_str.strip_prefix("-pi/") {
+        return stripped
             .parse::<f64>()
             .map(|divisor| -PI / divisor)
-            .map_err(|e| format!("Invalid divisor in angle: {}", e));
+            .map_err(|e| format!("Invalid divisor in angle: {e}"));
     }
 
     match angle_str {
@@ -876,10 +849,10 @@ fn parse_angle(angle_str: &str) -> Result<f64, String> {
         s if s.starts_with("pi/") => s[3..]
             .parse::<f64>()
             .map(|divisor| PI / divisor)
-            .map_err(|e| format!("Invalid divisor in angle: {}", e)),
+            .map_err(|e| format!("Invalid divisor in angle: {e}")),
         s => s
             .parse()
-            .map_err(|e| format!("Invalid angle format: {}", e)),
+            .map_err(|e| format!("Invalid angle format: {e}")),
     }
 }
 
@@ -891,7 +864,7 @@ fn parse_qubit(s: &str) -> Result<(String, usize), String> {
         let index = index_str
             .trim_end_matches(']')
             .parse()
-            .map_err(|e| format!("Invalid qubit index: {}", e))?;
+            .map_err(|e| format!("Invalid qubit index: {e}"))?;
         Ok((reg, index))
     } else {
         Ok((s.to_string(), 0))
@@ -918,8 +891,8 @@ impl FromStr for QASMInstruction {
             let (reg, index) = parse_qubit(parts[1])?;
 
             match gate_type {
-                "rz" => Ok(QASMInstruction::RZ(reg, index, angle)),
-                "rx" => Ok(QASMInstruction::RX(reg, index, angle)),
+                "rz" => Ok(Self::RZ(reg, index, angle)),
+                "rx" => Ok(Self::RX(reg, index, angle)),
                 _ => unreachable!(),
             }
         } else {
@@ -930,34 +903,34 @@ impl FromStr for QASMInstruction {
                     let size = size
                         .trim_end_matches(']')
                         .parse()
-                        .map_err(|e| format!("Invalid register size: {}", e))?;
+                        .map_err(|e| format!("Invalid register size: {e}"))?;
                     if parts[0] == "qreg" {
-                        Ok(QASMInstruction::QReg(name.to_string(), size))
+                        Ok(Self::QReg(name.to_string(), size))
                     } else {
-                        Ok(QASMInstruction::CReg(name.to_string(), size))
+                        Ok(Self::CReg(name.to_string(), size))
                     }
                 }
                 "x" => {
                     let (reg, index) = parse_qubit(parts[1])?;
-                    Ok(QASMInstruction::X(reg, index))
+                    Ok(Self::X(reg, index))
                 }
                 "h" => {
                     let (reg, index) = parse_qubit(parts[1])?;
-                    Ok(QASMInstruction::Hadamard(reg, index))
+                    Ok(Self::Hadamard(reg, index))
                 }
                 "s" => {
                     let (reg, index) = parse_qubit(parts[1])?;
-                    Ok(QASMInstruction::Phase(reg, index))
+                    Ok(Self::Phase(reg, index))
                 }
                 "cx" => {
                     let args = parts[1..].join("");
                     let qubits: Vec<&str> = args.split(',').collect();
                     if qubits.len() != 2 {
-                        return Err(format!("Invalid CNOT format: {}", s));
+                        return Err(format!("Invalid CNOT format: {s}"));
                     }
                     let (control_reg, control_index) = parse_qubit(qubits[0])?;
                     let (target_reg, target_index) = parse_qubit(qubits[1])?;
-                    Ok(QASMInstruction::CNOT(
+                    Ok(Self::CNOT(
                         control_reg,
                         control_index,
                         target_reg,
@@ -968,12 +941,12 @@ impl FromStr for QASMInstruction {
                     let args = parts[1..].join("");
                     let qubits: Vec<&str> = args.split(',').collect();
                     if qubits.len() != 3 {
-                        return Err(format!("Invalid Toffoli format: {}", s));
+                        return Err(format!("Invalid Toffoli format: {s}"));
                     }
                     let (control1_reg, control1_index) = parse_qubit(qubits[0])?;
                     let (control2_reg, control2_index) = parse_qubit(qubits[1])?;
                     let (target_reg, target_index) = parse_qubit(qubits[2])?;
-                    Ok(QASMInstruction::Toffoli(
+                    Ok(Self::Toffoli(
                         control1_reg,
                         control1_index,
                         control2_reg,
@@ -986,21 +959,21 @@ impl FromStr for QASMInstruction {
                     let args = parts[1..].join("");
                     let qubits: Vec<&str> = args.split(',').collect();
                     if qubits.len() != 2 {
-                        return Err(format!("Invalid SWAP format: {}", s));
+                        return Err(format!("Invalid SWAP format: {s}"));
                     }
                     let (q1_reg, q1_index) = parse_qubit(qubits[0])?;
                     let (q2_reg, q2_index) = parse_qubit(qubits[1])?;
-                    Ok(QASMInstruction::Swap(q1_reg, q1_index, q2_reg, q2_index))
+                    Ok(Self::Swap(q1_reg, q1_index, q2_reg, q2_index))
                 }
                 "cz" => {
                     let args = parts[1..].join("");
                     let qubits: Vec<&str> = args.split(',').collect();
                     if qubits.len() != 2 {
-                        return Err(format!("Invalid CZ format: {}", s));
+                        return Err(format!("Invalid CZ format: {s}"));
                     }
                     let (control_reg, control_index) = parse_qubit(qubits[0])?;
                     let (target_reg, target_index) = parse_qubit(qubits[1])?;
-                    Ok(QASMInstruction::CZ(
+                    Ok(Self::CZ(
                         control_reg,
                         control_index,
                         target_reg,
@@ -1009,20 +982,20 @@ impl FromStr for QASMInstruction {
                 }
                 "measure" => {
                     if parts.len() == 4 && parts[1] == "q" && parts[3] == "c" {
-                        Ok(QASMInstruction::MeasureAll)
+                        Ok(Self::MeasureAll)
                     } else if parts.len() == 4 && parts[2] == "->" {
                         let (q_reg, q_index) = parse_qubit(parts[1])?;
                         let (c_reg, c_index) = parse_qubit(parts[3])?;
-                        Ok(QASMInstruction::Measure(q_reg, q_index, c_reg, c_index))
+                        Ok(Self::Measure(q_reg, q_index, c_reg, c_index))
                     } else {
-                        Err(format!("Invalid measure format: {}", s))
+                        Err(format!("Invalid measure format: {s}"))
                     }
                 }
                 "reset" => {
                     let (reg, index) = parse_qubit(parts[1])?;
-                    Ok(QASMInstruction::Reset(reg, index))
+                    Ok(Self::Reset(reg, index))
                 }
-                _ => Err(format!("Unsupported instruction: {}", s)),
+                _ => Err(format!("Unsupported instruction: {s}")),
             }
         }
     }
