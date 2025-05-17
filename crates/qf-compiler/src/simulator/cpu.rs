@@ -26,7 +26,7 @@ impl CPUSimulator {
 
     pub fn from_state(state_vector: &[Complex], num_qubits: usize) -> Self {
         let mut aligned_vec = AVec::new(32);
-        aligned_vec.extend_from_slice(&state_vector);
+        aligned_vec.extend_from_slice(state_vector);
 
         Self {
             state_vector: aligned_vec,
